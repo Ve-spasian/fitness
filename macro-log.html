@@ -41,7 +41,7 @@
   }
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
   html{-webkit-text-size-adjust:100%}
-  html,body{overflow-x:hidden;overflow-x:clip}
+  html,body{overflow-x:clip}
   .wrap{overflow-x:clip}
   html.ready .card{animation:none}
   body{margin:0;background:var(--bg);color:var(--ink);
@@ -55,7 +55,7 @@
   [hidden]{display:none!important}
 
   /* frosted header */
-  header{position:sticky;top:0;z-index:5;display:flex;align-items:center;justify-content:space-between;
+  header{position:sticky;top:0;z-index:5;-webkit-transform:translate3d(0,0,0);transform:translate3d(0,0,0);display:flex;align-items:center;justify-content:space-between;
     margin:0 -20px;padding:calc(12px + env(safe-area-inset-top)) 20px 12px;
     background:var(--glass);border-bottom:1px solid var(--glassBd);backdrop-filter:blur(22px) saturate(1.6);-webkit-backdrop-filter:blur(22px) saturate(1.6)}
   header button{background:none;border:0;width:40px;height:40px;font-size:26px;line-height:1;color:var(--ink);cursor:pointer;border-radius:6px}
@@ -200,13 +200,15 @@
   @keyframes draw{from{stroke-dashoffset:var(--len)}}
   .moreBtn{border:0;background:none;padding:12px 0 0;font:inherit;font-size:13px;font-weight:600;color:var(--acc);cursor:pointer}
   /* the sky over today follows the hour */
-  #sky{position:absolute;left:0;right:0;top:0;height:520px;pointer-events:none;z-index:0;opacity:0;transition:opacity .6s;
-    background:radial-gradient(120% 70% at var(--sx,30%) -10%,var(--sky1),transparent 70%),radial-gradient(90% 60% at 90% 0%,var(--sky2),transparent 70%);
-    -webkit-mask-image:linear-gradient(#000 40%,transparent);mask-image:linear-gradient(#000 40%,transparent);animation:drift 24s ease-in-out infinite alternate}
-  html.home #sky{opacity:1}
+  /* the sky only exists on the home screen, and it drifts by moving (cheap) rather than repainting */
+  #sky{position:absolute;left:0;right:0;top:0;height:520px;pointer-events:none;z-index:0;overflow:hidden;display:none;
+    -webkit-mask-image:linear-gradient(#000 40%,transparent);mask-image:linear-gradient(#000 40%,transparent)}
+  #sky::before{content:"";position:absolute;inset:-10% -25%;
+    background:radial-gradient(60% 60% at 35% 0%,var(--sky1),transparent 70%),radial-gradient(45% 55% at 85% 0%,var(--sky2),transparent 70%);
+    animation:drift 26s ease-in-out infinite alternate;will-change:transform}
+  html.home #sky{display:block}
   .wrap{position:relative;z-index:1}
-  @keyframes drift{from{--sx:22%;background-position:0 0}to{--sx:46%;background-position:0 6px}}
-  @property --sx{syntax:'<percentage>';inherits:false;initial-value:30%}
+  @keyframes drift{from{transform:translate3d(-6%,0,0)}to{transform:translate3d(6%,8px,0)}}
   /* earning the day */
   .earn .hit{animation:pop .55s cubic-bezier(.2,1.5,.4,1) both}
   .earn .hit path{stroke-dasharray:12;stroke-dashoffset:12;animation:drawC .4s .25s ease-out forwards}
@@ -219,7 +221,7 @@
   .toastE b{color:var(--good,#2fb36a)}
   .heroBump{animation:bump .5s cubic-bezier(.2,1.4,.4,1)}
   @keyframes bump{40%{transform:scale(1.035)}}
-  @media (prefers-reduced-motion:reduce){ #sky{animation:none} .earn .hit path{stroke-dashoffset:0} }
+  @media (prefers-reduced-motion:reduce){ #sky::before{animation:none} .earn .hit path{stroke-dashoffset:0} }
 
   /* nutrition calendar */
   #nCal .grid{grid-template-columns:repeat(7,minmax(0,1fr))}
