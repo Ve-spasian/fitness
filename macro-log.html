@@ -145,6 +145,82 @@
   .x{background:none;border:0;color:var(--muted);font-size:22px;line-height:1;cursor:pointer;padding:6px 9px;border-radius:6px}
   .x:hover{background:var(--track)}
   .empty{color:var(--muted);margin:0}
+  /* ---------- ledger home ---------- */
+  html.home #nBack,html.home #targetsCard{display:none}
+  html.home header #prev,html.home header #next{visibility:hidden}
+  .lgSec{margin:34px 0 0}
+  .lgHead{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px}
+  .lgHead h2{margin:0}
+  .lgSub{font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+  .trainLine{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:16px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+  .trainLine b{display:block;font-size:17px;font-weight:700;letter-spacing:-.01em}
+  .trainLine span{font-size:13px;color:var(--muted)}
+  .ghostBtn{flex:none;border:1px solid var(--line2);background:none;border-radius:9px;height:38px;padding:0 16px;font-weight:600;color:var(--acc);cursor:pointer}
+  .ghostBtn.doneB{color:var(--good,#1f9d55);border-color:transparent}
+  .seg{display:inline-flex;border:1px solid var(--line2);border-radius:9px;padding:2px}
+  .seg button{border:0;background:none;border-radius:7px;padding:5px 11px;font-size:12px;font-weight:700;color:var(--muted);cursor:pointer}
+  .seg button[aria-pressed="true"]{background:var(--panel,#fff);color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.1)}
+  .mNav{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
+  .mNav b{font-size:15px;font-weight:700}
+  .mNav button{border:0;background:none;width:40px;height:36px;border-radius:8px;font-size:24px;line-height:1;color:var(--muted);cursor:pointer}
+  #nCal .dow{font-size:10.5px;letter-spacing:.06em}
+  #nCal .lgrid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr))}
+  #nCal .day{border:0;border-radius:10px;aspect-ratio:1/1.12;padding:7px 0 0;justify-content:flex-start;gap:5px;background:none}
+  #nCal .day:hover{background:var(--track)}
+  #nCal .day.today{background:var(--panel,#fff);box-shadow:inset 0 0 0 1.5px var(--ink)}
+  #nCal .day.today::after{display:none}
+  #nCal .day.future .dn{opacity:.55}
+  #nCal .day .dn{font-size:13px;font-weight:500;opacity:1}
+  #nCal .day .mk{position:relative;z-index:1}
+  .tk{width:14px;height:3px;border-radius:2px;display:block}
+  .tk.done{background:var(--acc)}
+  .tk.plan{box-shadow:inset 0 0 0 1px var(--acc);opacity:.5}
+  .tk.none{visibility:hidden}
+  /* green days in a row link up into a chain */
+  #nCal .day.chainR::before{content:"";position:absolute;top:31px;left:50%;width:100%;height:2px;background:var(--good,#1f9d55);opacity:.45;z-index:0}
+  .cascade .mk>*{animation:mkIn .45s cubic-bezier(.2,1.3,.4,1) both;animation-delay:calc(var(--i) * 14ms)}
+  .cascade .chainR::before{animation:chainIn .5s ease-out both;animation-delay:calc(var(--i) * 14ms + 120ms);transform-origin:left}
+  @keyframes mkIn{from{opacity:0;transform:scale(.4)}to{opacity:1;transform:none}}
+  @keyframes chainIn{from{transform:scaleX(0)}to{transform:none}}
+  .lgLegend{display:flex;flex-wrap:wrap;gap:8px 16px;margin-top:14px;font-size:12px;color:var(--muted)}
+  .lgLegend span{display:inline-flex;align-items:center;gap:6px}
+  .lgLegend .hitS{width:14px;height:14px;border-radius:50%;background:var(--good,#1f9d55)}
+  .yearG{display:grid;grid-template-columns:repeat(auto-fill,minmax(9px,1fr));gap:3px}
+  .yearG i{display:block;aspect-ratio:1;border-radius:2px;background:var(--track)}
+  .yearG i.g{background:var(--good,#1f9d55)}
+  .yearG i.w{background:var(--warn,#e5a800);opacity:.55}
+  .yearG i.t{box-shadow:0 0 0 1.5px var(--ink)}
+  .cascade .yearG i{animation:mkIn .4s ease-out both;animation-delay:calc(var(--i) * 2ms)}
+  .yearNote{margin:14px 0 0;font-size:13px;color:var(--muted)}
+  .yearNote b{color:var(--ink)}
+  .spark{width:100%;height:120px;display:block;overflow:visible}
+  .sparkLbl{display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-top:6px}
+  .spark .ln{stroke-dasharray:var(--len);stroke-dashoffset:0}
+  .cascade .spark .ln{animation:draw 1s .15s cubic-bezier(.4,0,.2,1) both}
+  @keyframes draw{from{stroke-dashoffset:var(--len)}}
+  .moreBtn{border:0;background:none;padding:12px 0 0;font:inherit;font-size:13px;font-weight:600;color:var(--acc);cursor:pointer}
+  /* the sky over today follows the hour */
+  #sky{position:absolute;left:0;right:0;top:0;height:520px;pointer-events:none;z-index:0;opacity:0;transition:opacity .6s;
+    background:radial-gradient(120% 70% at var(--sx,30%) -10%,var(--sky1),transparent 70%),radial-gradient(90% 60% at 90% 0%,var(--sky2),transparent 70%);
+    -webkit-mask-image:linear-gradient(#000 40%,transparent);mask-image:linear-gradient(#000 40%,transparent);animation:drift 24s ease-in-out infinite alternate}
+  html.home #sky{opacity:1}
+  .wrap{position:relative;z-index:1}
+  @keyframes drift{from{--sx:22%;background-position:0 0}to{--sx:46%;background-position:0 6px}}
+  @property --sx{syntax:'<percentage>';inherits:false;initial-value:30%}
+  /* earning the day */
+  .earn .hit{animation:pop .55s cubic-bezier(.2,1.5,.4,1) both}
+  .earn .hit path{stroke-dasharray:12;stroke-dashoffset:12;animation:drawC .4s .25s ease-out forwards}
+  .earn .mk::after{content:"";position:absolute;left:50%;top:50%;width:18px;height:18px;margin:-9px 0 0 -9px;border-radius:50%;border:2px solid var(--good,#1f9d55);animation:ripple .9s .15s ease-out both;pointer-events:none}
+  @keyframes pop{from{transform:scale(.2);opacity:0}to{transform:none;opacity:1}}
+  @keyframes drawC{to{stroke-dashoffset:0}}
+  @keyframes ripple{from{transform:scale(1);opacity:.9}to{transform:scale(3.2);opacity:0}}
+  .toastE{position:fixed;left:50%;top:calc(14px + env(safe-area-inset-top,0px));transform:translate(-50%,-160%);z-index:60;background:var(--ink);color:var(--bg);padding:11px 18px;border-radius:999px;font-size:14px;font-weight:600;white-space:nowrap;transition:transform .5s cubic-bezier(.2,.8,.2,1);box-shadow:0 10px 30px -10px rgba(0,0,0,.4)}
+  .toastE.on{transform:translate(-50%,0)}
+  .toastE b{color:var(--good,#2fb36a)}
+  .heroBump{animation:bump .5s cubic-bezier(.2,1.4,.4,1)}
+  @keyframes bump{40%{transform:scale(1.035)}}
+  @media (prefers-reduced-motion:reduce){ #sky{animation:none} .earn .hit path{stroke-dashoffset:0} }
+
   /* nutrition calendar */
   #nCal .grid{grid-template-columns:repeat(7,minmax(0,1fr))}
   #nCal .day{padding:5px 0 6px}
@@ -331,6 +407,7 @@
     --glass:rgba(244,245,247,.86); --glassBd:rgba(14,17,22,.08); --track:rgba(14,17,22,.08);
     --uBg:#e8eefc; --uInk:#1f4fd1; --uSolid:#2f6bff; --lBg:#fdeeda; --lInk:#a65f0a; --lSolid:#f2a93b;
     --good:#1f9d55; --warn:#e5a800;
+    --sky1:rgba(120,170,255,.22); --sky2:rgba(255,200,150,.14);
   }
   @media (prefers-color-scheme:dark){
     :root[data-skin="sport"]{
@@ -404,6 +481,8 @@
 </style>
 </head>
 <body>
+<div id="sky" aria-hidden="true"></div>
+<div class="toastE" id="earnToast" role="status" aria-live="polite"></div>
 <div class="wrap">
   <div id="viewN">
   <header>
@@ -412,7 +491,6 @@
     <button id="next" aria-label="Next day">›</button>
   </header>
 
-  <div id="nCal" hidden></div>
   <div id="nDay">
   <button class="back" id="nBack" type="button">‹ Back to the calendar</button>
 
@@ -481,13 +559,15 @@
     <div class="chips" id="recent"></div>
   </section>
 
-  <section class="card">
-    <h2>Today's log</h2>
+  <section class="card" id="logCard">
+    <h2 id="logTitle">Today's log</h2>
     <div id="list"></div>
     <div class="tools"><button class="tool" id="copyPrev" type="button" hidden></button></div>
   </section>
 
-  <section class="card">
+  <div id="nCal" hidden></div>
+
+  <section class="card" id="bodyCard">
     <h2>Weight and waist</h2>
     <div class="two">
       <div><label class="f" for="bW">Weight, lb</label><input id="bW" type="number" inputmode="decimal" step="0.1"></div>
@@ -497,7 +577,7 @@
     <div id="bodyHist"></div>
   </section>
 
-  <section class="card">
+  <section class="card" id="targetsCard">
     <details>
       <summary>Daily targets</summary>
       <div class="targets">
@@ -528,8 +608,8 @@
 
 <nav class="tabs" aria-label="Sections">
   <button id="tabN" aria-current="page">
-    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3a9 9 0 1 0 9 9h-9z"/><path d="M15 3.5A9 9 0 0 1 20.5 9H15z"/></svg>
-    Nutrition
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15" rx="2.5"/><path d="M3.5 10h17M8 3v4M16 3v4"/></svg>
+    Today
   </button>
   <button id="tabT">
     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6.5 6.5v11M17.5 6.5v11M3 9v6M21 9v6M6.5 12h11"/></svg>
@@ -604,82 +684,189 @@ function dayHit(list){
   return t.pro >= (g.pro || 0) && t.cal <= (g.cal || 0) + 100;
 }
 const dayOver = list => !!(list && list.length && totals(list).cal > (state.targets.cal || 0) + 100);
+let lgYear = false, lgCascade = true, lgShowAll = false, earnedToday = null;
+const LG_CHECK = '<span class="hit"><svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 6.3l2.3 2.3 4.7-5"/></svg></span>';
+const LG_YIELD = '<svg class="yld" viewBox="0 0 20 18" aria-hidden="true"><path d="M2.6 2.9h14.8c.8 0 1.3.9.8 1.6l-7.4 11c-.4.6-1.2.6-1.6 0L1.8 4.5c-.5-.7 0-1.6.8-1.6z" fill="none" stroke="var(--warn,#e5a800)" stroke-width="1.7" stroke-linejoin="round"/></svg>';
+const todayD = () => { const n = new Date(); return new Date(n.getFullYear(), n.getMonth(), n.getDate()); };
+// food state for a day: 'g' earned, 'w' missed, '' nothing to say yet
+function dayState(d){
+  const k = dkey(d), tk = dkey(todayD()), h = dayHit(state.days[k]);
+  if(h) return 'g';
+  if(h === false && (k < tk || dayOver(state.days[k]))) return 'w';
+  return '';
+}
+function streakNow(){
+  const t = todayD(); let n = 0;
+  for(let d = dayHit(state.days[dkey(t)]) ? t : addDays(t,-1); dayHit(state.days[dkey(d)]); d = addDays(d,-1)) n++;
+  return n;
+}
+// the workout plan by date, for the ticks under each day
+function workoutsBy(upto){
+  const m = {};
+  try{ sequence(upto).forEach(it => { const k = dkey(it.date); if(!m[k]) m[k] = it; }); }catch(e){}
+  return m;
+}
 function renderNCal(){
-  const first = nMonth, last = new Date(first.getFullYear(), first.getMonth()+1, 0);
-  const now = new Date(), today = new Date(now.getFullYear(), now.getMonth(), now.getDate()), todayK = dkey(today);
+  const today = todayD(), todayK = dkey(today), first = nMonth, last = new Date(first.getFullYear(), first.getMonth()+1, 0);
   const gridStart = addDays(first, -first.getDay()), gridEnd = addDays(last, 6 - last.getDay());
-  let cells = '', hits = 0, logged = 0;
-  const YIELD = '<svg class="yld" viewBox="0 0 20 18" aria-hidden="true"><path d="M2.2 2.5h15.6c.9 0 1.4 1 .9 1.7l-7.8 11.6c-.4.6-1.4.6-1.8 0L1.3 4.2c-.5-.7 0-1.7.9-1.7z" fill="var(--warn,#e5a800)"/></svg>';
-  const CHECK = '<svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 6.3l2.3 2.3 4.7-5"/></svg>';
-  for(let dt = gridStart; dt <= gridEnd; dt = addDays(dt,1)){
-    const k = dkey(dt), h = dayHit(state.days[k]), inMonth = dt.getMonth() === first.getMonth();
-    const cls = ['day']; if(!inMonth) cls.push('out'); if(k === todayK) cls.push('today');
-    if(inMonth && h !== null && (k < todayK || h || dayOver(state.days[k]))){ logged++; if(h) hits++; }
-    // today is still in progress, so it only gets the yield sign once calories are already past the line
-    const miss = h === false && (k < todayK || (k === todayK && dayOver(state.days[k])));
-    const mk = h ? `<span class="hit">${CHECK}</span>` : miss ? YIELD : '';
-    const lbl = dt.toLocaleDateString(undefined,{weekday:'long',month:'long',day:'numeric'}) + (h ? ', on target' : miss ? ', missed' : '');
-    cells += `<button class="${cls.join(' ')}" data-d="${k}" aria-label="${esc(lbl)}"><span class="dn">${dt.getDate()}</span><span class="mk">${mk}</span></button>`;
+  const wk = workoutsBy(addDays(gridEnd > today ? gridEnd : today, 1));
+
+  // today's workout line
+  const it = wk[todayK];
+  let train;
+  if(it){
+    const tp = tplOf(it.n);
+    train = `<div class="trainLine"><div><b>${esc(tp.name)}</b><span>${esc(tp.focus[0].toUpperCase() + tp.focus.slice(1))}, ${tp.ex.length} exercises</span></div>
+      <button type="button" class="ghostBtn${it.fin ? ' doneB' : ''}" data-open="${it.n}">${it.fin ? 'Finished ✓' : 'Start'}</button></div>`;
+  }else{
+    const nx = Object.values(wk).filter(x => x.date > today && !x.fin).sort((a,b) => a.date - b.date)[0];
+    train = `<div class="trainLine"><div><b>Rest day</b><span>${nx ? 'Next: ' + esc(tplOf(nx.n).name) + ' on ' + nx.date.toLocaleDateString(undefined,{weekday:'long'}) : 'Nothing planned'}</span></div></div>`;
   }
-  // streak of on-target days, counting today only once it is on target
-  let streak = 0;
-  for(let d = dayHit(state.days[todayK]) ? today : addDays(today,-1); dayHit(state.days[dkey(d)]); d = addDays(d,-1)) streak++;
-  const t = totals(state.days[todayK] || []), g = state.targets, left = Math.round(g.cal - t.cal), proLeft = Math.max(0, Math.round(g.pro - t.pro));
-  $('dateMain').textContent = first.toLocaleDateString(undefined,{month:'long',year:'numeric'});
-  $('dateSub').textContent = logged ? `${hits} of ${logged} logged days on target` : 'No days logged this month';
-  $('prev').setAttribute('aria-label','Previous month'); $('next').setAttribute('aria-label','Next month');
-  $('nCal').innerHTML = `
-    <section class="card cal">
-      <div class="dow"><span>Sun</span><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span></div>
-      <div class="grid">${cells}</div>
+
+  // month grid
+  let cells = '', hits = 0, logged = 0, idx = 0;
+  const states = {};
+  for(let d = gridStart; d <= gridEnd; d = addDays(d,1)) states[dkey(d)] = d <= today ? dayState(d) : '';
+  for(let d = gridStart; d <= gridEnd; d = addDays(d,1), idx++){
+    const k = dkey(d), st = states[k], inM = d.getMonth() === first.getMonth(), w = wk[k];
+    if(inM && st){ logged++; if(st === 'g') hits++; }
+    const right = addDays(d,1), chain = st === 'g' && d.getDay() !== 6 && states[dkey(right)] === 'g';
+    const cls = ['day']; if(!inM) cls.push('out'); if(k === todayK) cls.push('today'); if(d > today) cls.push('future'); if(chain) cls.push('chainR');
+    const tk = w ? (w.fin ? 'done' : 'plan') : 'none';
+    const lbl = d.toLocaleDateString(undefined,{weekday:'long',month:'long',day:'numeric'}) + (st === 'g' ? ', food on target' : st === 'w' ? ', food missed' : '') + (w ? (w.fin ? ', workout done' : ', workout planned') : '');
+    cells += `<button class="${cls.join(' ')}" data-d="${k}" style="--i:${idx}" aria-label="${esc(lbl)}"><span class="dn">${d.getDate()}</span><span class="mk">${st === 'g' ? LG_CHECK : st === 'w' ? LG_YIELD : ''}</span><i class="tk ${tk}"></i></button>`;
+  }
+
+  // year: the last 52 weeks as small squares
+  let yearHTML = '', yg = 0, yn = 0, best = 0, run = 0;
+  if(lgYear){
+    for(let i = 364, j = 0; i >= 0; i--, j++){
+      const d = addDays(today, -i), st = dayState(d);
+      if(st){ yn++; if(st === 'g'){ yg++; run++; best = Math.max(best, run); } else run = 0; }
+      yearHTML += `<i class="${st}${i === 0 ? ' t' : ''}" style="--i:${j}" title="${d.toDateString()}"></i>`;
+    }
+  }
+
+  // week: calories against the goal band
+  const g = state.targets, wkd = [];
+  for(let i = 6; i >= 0; i--){ const d = addDays(today, -i), l = state.days[dkey(d)]; wkd.push({d, c: l && l.length ? totals(l).cal : null}); }
+  const vals = wkd.filter(x => x.c != null).map(x => x.c).concat([g.cal + 100, g.cal - 400]);
+  const lo = Math.min(...vals) - 150, hi = Math.max(...vals) + 150, W = 340, H = 120;
+  const y = v => (H - 12) - (v - lo)/(hi - lo)*(H - 24), x = i => 6 + i*(W - 12)/6;
+  // today is still being eaten, so its stretch of the line is dashed
+  const pts = wkd.slice(0,6).map((p,i) => p.c == null ? null : [x(i), y(p.c)]).filter(Boolean);
+  const lastP = pts[pts.length-1], todayP = wkd[6].c != null ? [x(6), y(wkd[6].c)] : null;
+  let len = 0; for(let i = 1; i < pts.length; i++) len += Math.hypot(pts[i][0]-pts[i-1][0], pts[i][1]-pts[i-1][1]);
+  const spark = `<rect x="0" y="${y(g.cal + 100).toFixed(1)}" width="${W}" height="${(y(g.cal - 400) - y(g.cal + 100)).toFixed(1)}" fill="var(--good,#1f9d55)" opacity=".1"/>
+    <line x1="0" x2="${W}" y1="${y(g.cal).toFixed(1)}" y2="${y(g.cal).toFixed(1)}" stroke="var(--good,#1f9d55)" stroke-dasharray="3 4" opacity=".7"/>
+    ${pts.length > 1 ? `<polyline class="ln" style="--len:${len.toFixed(0)}" points="${pts.map(p => p.map(n => n.toFixed(1)).join(',')).join(' ')}" fill="none" stroke="var(--ink)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>` : ''}
+    ${lastP && todayP ? `<line x1="${lastP[0].toFixed(1)}" y1="${lastP[1].toFixed(1)}" x2="${todayP[0].toFixed(1)}" y2="${todayP[1].toFixed(1)}" stroke="var(--ink)" stroke-width="2" stroke-dasharray="2 5" stroke-linecap="round" opacity=".5"/>` : ''}
+    ${wkd.map((p,i) => p.c == null ? '' : `<circle cx="${x(i).toFixed(1)}" cy="${y(p.c).toFixed(1)}" r="${i === 6 ? 4.5 : 3}" fill="${p.c > g.cal + 100 ? 'var(--warn,#e5a800)' : i === 6 ? 'var(--acc)' : 'var(--ink)'}"/>`).join('')}`;
+
+  const el = $('nCal');
+  el.classList.toggle('cascade', lgCascade);
+  // drop the entrance animations once they have played so they don't linger
+  if(lgCascade){ clearTimeout(el._c); el._c = setTimeout(() => el.classList.remove('cascade'), 1800); }
+  el.innerHTML = `
+    <section class="lgSec" aria-labelledby="lgTrainH"><div class="lgHead"><h2 id="lgTrainH">Training</h2></div>${train}</section>
+    <section class="lgSec" aria-labelledby="lgH">
+      <div class="lgHead"><h2 id="lgH">Ledger</h2>
+        <div class="seg" role="group" aria-label="Range"><button type="button" data-seg="m" aria-pressed="${!lgYear}">Month</button><button type="button" data-seg="y" aria-pressed="${lgYear}">Year</button></div></div>
+      ${lgYear ? `<div class="yearG">${yearHTML}</div><p class="yearNote"><b>${yg}</b> of ${yn} logged days on target in the last year. Longest run: <b>${best}</b> ${best === 1 ? 'day' : 'days'}.</p>` : `
+      <div class="mNav"><button type="button" data-m="-1" aria-label="Previous month">‹</button><b>${first.toLocaleDateString(undefined,{month:'long',year:'numeric'})}</b><button type="button" data-m="1" aria-label="Next month">›</button></div>
+      <div class="dow"><span>S</span><span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span></div>
+      <div class="lgrid">${cells}</div>
+      <div class="lgLegend"><span><i class="hitS"></i>${hits} of ${logged} on target</span><span>${LG_YIELD.replace('class="yld"','class="yld" style="width:15px;height:14px"')}Missed</span><span><i class="tk done"></i>Workout done</span><span><i class="tk plan"></i>Planned</span></div>`}
     </section>
-    <p class="legend">A check means you hit your protein and stayed no more than 100 calories over your goal. Going under is fine. A yield sign means protein came up short or calories went more than 100 over. Tap any day to open it.</p>
-    <section class="card"><button class="todayCard" id="nToday" type="button">
-      <div><div class="tcBig num" style="${left < 0 ? 'color:var(--danger)' : ''}">${(left < 0 ? '\u2212' : '') + Math.abs(left).toLocaleString()}</div>
-      <div class="tcLbl">calories left today, ${proLeft ? proLeft + ' g protein to go' : 'protein goal hit'}${streak > 1 ? `, ${streak} days on target in a row` : ''}</div></div>
-      <span class="tcGo">Log food ›</span></button></section>`;
+    <section class="lgSec" aria-labelledby="lgWkH"><div class="lgHead"><h2 id="lgWkH">This week</h2><span class="lgSub">Calories vs goal</span></div>
+      <svg class="spark" viewBox="0 0 ${W} ${H}" role="img" aria-label="Calories for the last seven days against the goal band">${spark}</svg>
+      <div class="sparkLbl">${wkd.map((p,i) => `<span>${i === 6 ? 'Today' : p.d.toLocaleDateString(undefined,{weekday:'short'})}</span>`).join('')}</div></section>`;
+  lgCascade = false;
+}
+// the moment a day turns green: the check draws in, a ring spreads, and a note says how long the run is
+function checkEarned(){
+  const t = todayD(), k = dkey(t), now = !!dayHit(state.days[k]);
+  if(earnedToday && earnedToday.k === k && !earnedToday.v && now && nMode === 'cal'){
+    const cell = document.querySelector(`#nCal .day[data-d="${k}"]`);
+    if(cell){ cell.classList.remove('earn'); void cell.offsetWidth; cell.classList.add('earn'); }
+    const n = streakNow(), toast = $('earnToast');
+    toast.innerHTML = n > 1 ? `Day earned. <b>${n} in a row.</b>` : 'Day earned.';
+    toast.classList.add('on'); clearTimeout(toast._t); toast._t = setTimeout(() => toast.classList.remove('on'), 2600);
+  }
+  earnedToday = {k, v: now};
+}
+// numbers roll to their new value instead of jumping
+function rollTo(el, to, fmt){
+  if(!el) return;
+  const from = el._v == null ? to : el._v; el._v = to;
+  if(from === to || matchMedia('(prefers-reduced-motion: reduce)').matches){ el.textContent = fmt(to); return; }
+  const t0 = performance.now(), dur = 520;
+  cancelAnimationFrame(el._raf);
+  const step = now => { const p = Math.min(1, (now - t0)/dur), e = 1 - Math.pow(1 - p, 3);
+    el.textContent = fmt(from + (to - from)*e); if(p < 1) el._raf = requestAnimationFrame(step); };
+  el._raf = requestAnimationFrame(step);
+}
+// sky colors by hour: dawn, day, dusk, night
+function paintSky(){
+  const h = new Date().getHours() + new Date().getMinutes()/60;
+  const dark = matchMedia('(prefers-color-scheme: dark)').matches, a = dark ? 1.4 : 1;
+  const P = h < 5 ? ['70,80,170',.20,'120,90,190',.12] : h < 9 ? ['255,170,120',.22,'255,210,160',.16] : h < 16 ? ['110,165,255',.20,'170,215,255',.14]
+    : h < 19.5 ? ['255,150,90',.22,'240,120,150',.14] : ['60,70,160',.22,'130,90,200',.12];
+  const r = document.documentElement.style;
+  r.setProperty('--sky1', `rgba(${P[0]},${(P[1]*a).toFixed(2)})`); r.setProperty('--sky2', `rgba(${P[2]},${(P[3]*a).toFixed(2)})`);
 }
 function openNDay(d){ current = d; nMode = 'day'; render(); window.scrollTo(0,0); }
-function closeNDay(){ nMonth = new Date(current.getFullYear(), current.getMonth(), 1); nMode = 'cal'; editAt = null; render(); window.scrollTo(0,0); }
+function closeNDay(){ current = new Date(); nMode = 'cal'; editAt = null; lgCascade = true; render(); window.scrollTo(0,0); }
 
 function render(){
-  $('nCal').hidden = nMode !== 'cal'; $('nDay').hidden = nMode !== 'day';
+  const home = nMode === 'cal';
+  if(home && dkey(current) !== dkey(new Date())) current = new Date();
+  document.documentElement.classList.toggle('home', home && !$('viewN').hidden);
+  $('nCal').hidden = !home; $('nDay').hidden = false;
   $('prev').setAttribute('aria-label','Previous day'); $('next').setAttribute('aria-label','Next day');
   const isToday = dkey(new Date()) === dkey(current);
   $('dateMain').textContent = isToday ? 'Today' : current.toLocaleDateString(undefined,{weekday:'long'});
-  $('dateSub').textContent = current.toLocaleDateString(undefined,{month:'long',day:'numeric',year:'numeric'});
+  $('dateSub').textContent = current.toLocaleDateString(undefined,{weekday: home ? 'long' : undefined, month:'long',day:'numeric',year: home ? undefined : 'numeric'});
+  $('logTitle').textContent = isToday ? 'Today\u2019s log' : 'Log';
 
   const list = dayList(), t = totals(list), g = state.targets;
   const left = Math.round(g.cal - t.cal);
-  $('remain').textContent = (left < 0 ? '\u2212' : '') + Math.abs(left).toLocaleString();
+  rollTo($('remain'), left, v => (Math.round(v) < 0 ? '\u2212' : '') + Math.abs(Math.round(v)).toLocaleString());
   $('remain').style.color = left < 0 ? 'var(--danger)' : '';
   $('remainLbl').textContent = isToday ? 'calories left today' : 'calories left that day';
-  $('eaten').textContent = Math.round(t.cal).toLocaleString();
+  rollTo($('eaten'), Math.round(t.cal), v => Math.round(v).toLocaleString());
   $('goal').textContent = g.cal.toLocaleString();
   const bar = $('calBarFill');
   bar.style.width = (g.cal ? Math.min(100, t.cal/g.cal*100) : 0) + '%';
   bar.classList.toggle('over', !!(g.cal && t.cal > g.cal));
 
+  const keepBar = $('macros').querySelector('.fill'), oldW = keepBar ? keepBar.style.width : '0%';
   $('macros').innerHTML = [['Protein','pro','var(--acc)']].map(([n,k,c])=>{
     const pct = g[k] ? Math.min(100, t[k]/g[k]*100) : 0;
     if(g[k] && t[k] >= g[k]) c = 'var(--good,#1f9d55)';
     const over = k !== 'pro' && g[k] && t[k] > g[k];
     return `<div class="m"><div class="mName">${n}</div>
       <div class="mVal num"><b>${Math.round(t[k])}</b> <span>of ${g[k]} g</span></div>
-      <div class="track"><div class="fill ${over?'over':''}" style="width:${pct}%;background:${c}"></div></div></div>`;
+      <div class="track"><div class="fill ${over?'over':''}" data-w="${pct}%" style="width:${oldW};background:${c}"></div></div></div>`;
   }).join('');
+  // let the bar grow from where it was
+  const nb = $('macros').querySelector('.fill'); if(nb){ void nb.offsetWidth; nb.style.width = nb.dataset.w; }
 
   const prevEntries = state.days[dkey(addDays(current,-1))] || [];
   $('copyPrev').hidden = !prevEntries.length;
   $('copyPrev').textContent = 'Copy ' + addDays(current,-1).toLocaleDateString(undefined,{weekday:'long'}) + '\u2019s log (' + Math.round(prevEntries.reduce((a,e)=>a+e.cal,0)).toLocaleString() + ' cal)';
   if(editAt && editAt.d !== dkey(current)) editAt = null;
+  // on the home screen only the newest three show, the rest fold away
+  const fold = home && !lgShowAll && list.length > 3 && !editAt;
   $('list').innerHTML = list.length ? list.map((e,i)=>{
+    if(fold && i < list.length - 3) return '';
     const ed = editAt && editAt.i === i;
     return `
     <div class="entry${ed ? ' editing' : ''}" data-i="${i}"><div class="t"><b>${esc(e.name||'Food')}</b><span>${macroLine(e)}</span></div>
     <div class="r"><span class="num">${Math.round(e.cal)}</span><button class="x" data-i="${i}" aria-label="Delete entry">×</button></div><button class="del" data-i="${i}" aria-label="Delete entry">Delete</button></div>${ed ? editHTML(e, i) : ''}`;
   }).join('')
     : '<p class="empty">Nothing is logged for this day yet. Type what you ate above, or scan a package, and it will show up here.</p>';
+  if(home && list.length > 3) $('list').insertAdjacentHTML('beforeend', `<button type="button" class="moreBtn" id="lgMore">${lgShowAll ? 'Show less' : 'Show all ' + list.length}</button>`);
 
   // recent foods across all days, unique by name
   const seen = new Map();
@@ -702,7 +889,8 @@ function render(){
 
   $('tCal').value = g.cal; $('tPro').value = g.pro; $('tCarb').value = g.carb; $('tFat').value = g.fat;
   renderBatches();
-  if(nMode === 'cal') renderNCal();
+  if(home){ renderNCal(); paintSky(); }
+  checkEarned();
 }
 
 /* ---------- edit a logged entry ---------- */
@@ -801,9 +989,16 @@ $('next').onclick = () => { if(nMode === 'cal') nMonth = new Date(nMonth.getFull
 $('nBack').onclick = closeNDay;
 $('nCal').addEventListener('click', ev => {
   const c = ev.target.closest('[data-d]');
-  if(c){ const [y,m,d] = c.dataset.d.split('-').map(Number); openNDay(new Date(y, m-1, d)); return; }
-  if(ev.target.closest('#nToday')) openNDay(new Date());
+  if(c){ const [y,m,d] = c.dataset.d.split('-').map(Number); if(dkey(new Date(y, m-1, d)) === dkey(new Date())){ $('q').focus(); return; } openNDay(new Date(y, m-1, d)); return; }
+  const mv = ev.target.closest('[data-m]');
+  if(mv){ nMonth = new Date(nMonth.getFullYear(), nMonth.getMonth() + +mv.dataset.m, 1); lgCascade = true; renderNCal(); return; }
+  const sg = ev.target.closest('[data-seg]');
+  if(sg){ lgYear = sg.dataset.seg === 'y'; lgCascade = true; renderNCal(); return; }
+  const op = ev.target.closest('[data-open]');
+  if(op){ showTab('t'); window.__tabI = 1; openN = +op.dataset.open; renderTrain(); window.scrollTo(0,0); }
 });
+$('list').addEventListener('click', ev => { if(ev.target.closest('#lgMore')){ lgShowAll = !lgShowAll; render(); } }, true);
+document.addEventListener('visibilitychange', () => { if(!document.hidden && nMode === 'cal' && !$('viewN').hidden){ lgCascade = true; render(); } });
 
 $('saveBody').onclick = () => {
   const w = parseFloat($('bW').value), wa = parseFloat($('bWa').value);
@@ -6858,10 +7053,13 @@ $('tPrev').onclick = () => { tMonth = new Date(tMonth.getFullYear(), tMonth.getM
 $('tNext').onclick = () => { tMonth = new Date(tMonth.getFullYear(), tMonth.getMonth()+1, 1); renderTrain(); };
 
 function showTab(t){
+  document.documentElement.classList.toggle('home', t === 'n' && nMode === 'cal');
+  if(t === 'n' && nMode === 'cal') lgCascade = true;
   $('viewN').hidden = t !== 'n'; $('viewT').hidden = t !== 't'; $('viewP').hidden = t !== 'p';
   $('tabN').setAttribute('aria-current', t === 'n' ? 'page' : 'false');
   $('tabT').setAttribute('aria-current', t === 't' ? 'page' : 'false');
   $('tabP').setAttribute('aria-current', t === 'p' ? 'page' : 'false');
+  if(t === 'n') render();
   if(t === 't') renderTrain();
   if(t === 'p') renderProgress();
   window.scrollTo(0,0);
