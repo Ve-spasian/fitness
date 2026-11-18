@@ -808,6 +808,7 @@ function render(){
   document.documentElement.classList.toggle('home', home && !$('viewN').hidden);
   $('nCal').hidden = !home; $('nDay').hidden = false;
   $('prev').setAttribute('aria-label','Previous day'); $('next').setAttribute('aria-label','Next day');
+  $('next').style.visibility = !home && dkey(current) >= dkey(new Date()) ? 'hidden' : '';
   const isToday = dkey(new Date()) === dkey(current);
   $('dateMain').textContent = isToday ? 'Today' : current.toLocaleDateString(undefined,{weekday:'long'});
   $('dateSub').textContent = current.toLocaleDateString(undefined,{weekday: home ? 'long' : undefined, month:'long',day:'numeric',year: home ? undefined : 'numeric'});
@@ -963,7 +964,7 @@ $('recent').onclick = ev => {
   addEntry(Object.assign({name:e.name, cal:e.cal, pro:e.pro, carb:e.carb, fat:e.fat}, e.bid ? {bid:e.bid, bf:e.bf} : {}));
 };
 $('prev').onclick = () => { if(nMode === 'cal') nMonth = new Date(nMonth.getFullYear(), nMonth.getMonth()-1, 1); else current.setDate(current.getDate()-1); render(); };
-$('next').onclick = () => { if(nMode === 'cal') nMonth = new Date(nMonth.getFullYear(), nMonth.getMonth()+1, 1); else current.setDate(current.getDate()+1); render(); };
+$('next').onclick = () => { if(nMode === 'cal') nMonth = new Date(nMonth.getFullYear(), nMonth.getMonth()+1, 1); else if(dkey(current) < dkey(new Date())) current.setDate(current.getDate()+1); render(); };
 $('nBack').onclick = closeNDay;
 $('nCal').addEventListener('click', ev => {
   const c = ev.target.closest('[data-d]');
@@ -1048,6 +1049,7 @@ function renderLog(){
   const k = dkey(lDate), list = state.days[k] || [], t = totals(list), isToday = k === dkey(new Date());
   $('lTitle').textContent = isToday ? 'Today' : lDate.toLocaleDateString(undefined, {weekday:'long'});
   $('lSub').textContent = lDate.toLocaleDateString(undefined, {month:'long', day:'numeric', year:'numeric'});
+  $('lNext').style.visibility = isToday ? 'hidden' : '';
   const idx = list.map((e,i) => i);
   const timed = idx.filter(i => list[i].t).sort((a,b) => list[a].t - list[b].t), untimed = idx.filter(i => !list[i].t);
   const row = i => {
@@ -1063,7 +1065,7 @@ function renderLog(){
     <button type="button" class="ghostBtn tlAdd" id="lAdd">Add food</button>`;
 }
 $('lPrev').onclick = () => { lDate = addDays(lDate, -1); lEdit = null; renderLog(); };
-$('lNext').onclick = () => { lDate = addDays(lDate, 1); lEdit = null; renderLog(); };
+$('lNext').onclick = () => { if(dkey(lDate) >= dkey(new Date())) return; lDate = addDays(lDate, 1); lEdit = null; renderLog(); };
 $('lBody').addEventListener('click', ev => {
   const k = dkey(lDate), list = state.days[k] || [];
   const box = ev.target.closest('.eEdit');
@@ -1108,7 +1110,7 @@ function renderBody(){
   $('bodyCard').classList.toggle('locked', logged);
   $('bodyState').innerHTML = logged ? LOCK + '<span>Logged</span>' : '<span>Not logged yet</span>';
   $('saveBody').textContent = logged ? 'Update' : 'Save';
-  const bd = Object.keys(state.body).sort().reverse().filter(d => d !== k).slice(0,5);
+  const bd = Object.keys(state.body).sort().reverse().filter(d => d < k).slice(0,5);
   $('bodyHist').innerHTML = bd.map(d => {
     const x = state.body[d], [y,m,dd] = d.split('-').map(Number);
     const lbl = new Date(y, m-1, dd).toLocaleDateString(undefined,{weekday:'short',month:'short',day:'numeric'});
@@ -7569,6 +7571,23 @@ function normalizeState(){
   state.days = state.days || {}; state.body = state.body || {}; state.custom = state.custom || [];
   state.train = state.train || {}; state.train.sessions = state.train.sessions || {}; state.meta = state.meta || {};
   state.recipes = state.recipes || [];
+  fixFutureDates();
+}
+// older versions saved a weigh-in to whatever day was on screen, so a day swiped ahead by mistake could hold
+// tomorrow's weight. a weigh-in can't be in the future: move it to today (if today has none) or drop it.
+// food goes back to the day it was logged (or today).
+function fixFutureDates(){
+  const tk = dkey(new Date()); let changed = false;
+  Object.keys(state.body).filter(k => k > tk).sort().forEach(k => {
+    if(!state.body[tk]) state.body[tk] = state.body[k];
+    delete state.body[k]; changed = true;
+  });
+  Object.keys(state.days).filter(k => k > tk).forEach(k => {
+    // food on a future day can't have been eaten then: back to the day it was logged, or today if that's unknown
+    state.days[k].forEach(e => { const rk = e.t ? dkey(new Date(e.t)) : tk; (state.days[rk > tk ? tk : rk] = state.days[rk > tk ? tk : rk] || []).push(e); });
+    delete state.days[k]; changed = true;
+  });
+  if(changed) save();
 }
 
 /* ---------- swipe gestures ---------- */
