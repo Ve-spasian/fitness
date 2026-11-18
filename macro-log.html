@@ -60,7 +60,7 @@
     -webkit-font-smoothing:antialiased;font-feature-settings:"kern","tnum";text-rendering:optimizeLegibility}
   .num{font-variant-numeric:tabular-nums lining-nums}
   .wrap{position:relative;z-index:1;max-width:520px;margin:0 auto;padding:0 var(--s3) 120px;overflow-x:clip}
-  #viewN,#viewT,#viewP{padding-top:var(--hh)}
+  #viewN,#viewL,#viewT,#viewP{padding-top:var(--hh)}
   #viewT.noHead{padding-top:env(safe-area-inset-top)}
   h2{margin:0 0 var(--s3);font-size:20px;line-height:1.2;font-weight:700;letter-spacing:-.02em;text-wrap:balance}
   p{text-wrap:pretty}
@@ -263,6 +263,32 @@
   .plateMeta b{color:var(--ink);font-weight:700}
   .plateTip{margin:var(--s1) 0 0;font-size:13px;color:var(--ink-2);min-height:18px}
   .plateTip b{color:var(--ink)}
+
+  /* ---------- food log: a vertical timeline with pixel icons ---------- */
+  .ico{width:28px;height:28px;image-rendering:pixelated;image-rendering:crisp-edges;display:block}
+  .icoTile{flex:none;width:40px;height:40px;border-radius:var(--r-ctl);background:#eef0f3;display:flex;align-items:center;justify-content:center}
+  #lBody{position:relative;padding-top:var(--s3)}
+  .lSum{display:flex;gap:var(--s4);margin:var(--s1) 0 var(--s4)}
+  .lSum div{font-size:13px;color:var(--ink-2)} .lSum b{display:block;font-size:24px;font-weight:700;letter-spacing:-.03em;color:var(--ink)}
+  .tl{position:relative}
+  .tl::before{content:"";position:absolute;left:79px;top:8px;bottom:8px;width:2px;border-radius:1px;background:var(--rule)}
+  .tlGroup{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-2);margin:var(--s3) 0 var(--s1) 104px}
+  .tlRow{position:relative;display:grid;grid-template-columns:52px 40px minmax(0,1fr) auto;gap:var(--s3);align-items:center;padding:var(--s2) 0;width:100%;background:none;border:0;text-align:left;font:inherit;color:var(--ink);cursor:pointer}
+  .tlRow .tm{font-size:12px;color:var(--ink-2);text-align:right;font-variant-numeric:tabular-nums}
+  .tlRow .nm b{display:block;font-size:16px;font-weight:700;letter-spacing:-.01em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .tlRow .nm span{font-size:13px;color:var(--ink-2)}
+  .tlRow .cal{font-size:16px;font-weight:700;font-variant-numeric:tabular-nums}
+  .tlRow.editing .nm b{color:var(--action)}
+  .tlRow .icoTile{position:relative;z-index:1}
+  #lBody .eEdit{margin-left:104px}
+  .tlEmpty{margin:var(--s4) 0 0 104px}
+  .tlAdd{margin:var(--s4) 0 0 104px}
+  .eDel{margin-left:auto}
+  .icoPick{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding:2px}
+  .icoPick::-webkit-scrollbar{display:none}
+  .icoPick button{flex:none;width:40px;height:40px;border-radius:var(--r-ctl);background:#eef0f3;border:2px solid transparent;display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0}
+  .icoPick button[aria-checked="true"]{border-color:var(--action)}
+  .icoPick .ico{width:24px;height:24px}
   /* ---------- ledger home ---------- */
   #nCal{margin-top:var(--s1)}
   .lgSec{margin:var(--s5) 0 0}
@@ -482,17 +508,11 @@
         <div><label class="f" for="fPro">Protein g</label><input id="fPro" type="number" inputmode="decimal" min="0"></div>
         <div hidden><label class="f" for="fCarb">Carbs g</label><input id="fCarb" type="number" inputmode="decimal" min="0"></div>
         <div hidden><label class="f" for="fFat">Fat g</label><input id="fFat" type="number" inputmode="decimal" min="0"></div>
+        <div class="name"><label class="f">Icon</label><div class="icoPick" id="fIcon" role="radiogroup" aria-label="Icon"></div></div>
         <label class="save"><input type="checkbox" id="fSave"><span>Keep this food so it comes up when I search by name. The values above are treated as one serving.</span></label>
       </div>
       <button class="primary" id="add">Add to today's log</button>
     </details>
-  </section>
-
-  <section class="card" id="plateCard">
-    <div class="plateHead"><span class="eyebrow">Today’s plate</span><button type="button" class="lnk" id="plateOpen">Log ›</button></div>
-    <div class="plate" id="plate" role="list" aria-label="Foods eaten today"></div>
-    <p class="plateMeta" id="plateMeta"></p>
-    <p class="plateTip" id="plateTip"></p>
   </section>
 
   <section class="card" id="batchCard" hidden>
@@ -534,6 +554,15 @@
   </div>
   </div>
 
+  <div id="viewL" hidden>
+    <header>
+      <button id="lPrev" aria-label="Previous day">‹</button>
+      <div class="date"><b id="lTitle"></b><span id="lSub"></span></div>
+      <button id="lNext" aria-label="Next day">›</button>
+    </header>
+    <div id="lBody"></div>
+  </div>
+
   <div id="viewT" hidden>
     <header id="tHeader">
       <button id="tPrev" aria-label="Previous month">‹</button>
@@ -562,6 +591,10 @@
   <button id="tabN" aria-current="page">
     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15" rx="2.5"/><path d="M3.5 10h17M8 3v4M16 3v4"/></svg>
     Today
+  </button>
+  <button id="tabL">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 6h12M8 12h12M8 18h12"/><circle cx="4" cy="6" r="1"/><circle cx="4" cy="12" r="1"/><circle cx="4" cy="18" r="1"/></svg>
+    Log
   </button>
   <button id="tabT">
     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6.5 6.5v11M17.5 6.5v11M3 9v6M21 9v6M6.5 12h11"/></svg>
@@ -832,7 +865,7 @@ function render(){
 
   $('tCal').value = g.cal; $('tPro').value = g.pro; $('tCarb').value = g.carb; $('tFat').value = g.fat;
   renderBatches();
-  if(home){ renderPlate(); renderNCal(); paintSky(); }
+  if(home){ renderNCal(); paintSky(); }
   checkEarned();
 }
 
@@ -859,8 +892,8 @@ function editHTML(e, i){
     <div><label class="f">Protein g</label><input class="ePro" type="number" inputmode="decimal" min="0" step="any" value="${r1(e.pro)}"></div>
   </div><div class="btnRow"><button class="primary eSave" type="button">Save</button><button class="tool eCancel" type="button">Cancel</button></div></div>`;
 }
-function saveEdit(box){
-  const i = +box.dataset.i, e = dayList()[i]; if(!e) return;
+function saveEdit(box, list){
+  const i = +box.dataset.i, e = (list || dayList())[i]; if(!e) return;
   const a = entryAmt(e), q2 = parseFloat(box.querySelector('.eQ').value);
   const k = q2 > 0 ? q2 / a.q : 1;
   const cal = parseFloat(box.querySelector('.eCal').value), pro = parseFloat(box.querySelector('.ePro').value);
@@ -870,11 +903,12 @@ function saveEdit(box){
   e.pro = isNaN(pro) ? r1(e.pro*k) : r1(pro);
   e.carb = r1(e.carb*k); e.fat = r1(e.fat*k);
   if(e.bf) e.bf = e.bf*k;
-  editAt = null; save(); render();
+  editAt = null; lEdit = null; save(); render(); if(!$('viewL').hidden) renderLog();
 }
 
 function addEntry(e){
   const k = dkey(current);
+  if(!e.t) e.t = Date.now();
   (state.days[k] = state.days[k] || []).push(e);
   save(); render();
 }
@@ -888,10 +922,11 @@ $('add').onclick = () => {
   const nm = $('fName').value.trim();
   if($('fSave').checked && nm){
     state.custom = state.custom.filter(c=>c.name.toLowerCase() !== nm.toLowerCase());
-    state.custom.push({name:nm, per:{cal,pro,carb,fat}, serving:100, grams:false});
+    state.custom.push({name:nm, per:{cal,pro,carb,fat}, serving:100, grams:false, icon:fIcon || undefined});
     $('fSave').checked = false;
   }
-  addEntry({name:nm, cal, pro, carb, fat});
+  addEntry(Object.assign({name:nm, cal, pro, carb, fat}, fIcon ? {ic:fIcon} : {}));
+  fIcon = null; renderIconPicker();
   ['fName','fCal','fPro','fCarb','fFat'].forEach(id=>$(id).value = '');
   $('fName').focus();
 };
@@ -938,39 +973,130 @@ $('nCal').addEventListener('click', ev => {
   const sg = ev.target.closest('[data-seg]');
   if(sg){ lgYear = sg.dataset.seg === 'y'; lgCascade = true; renderNCal(); return; }
   const op = ev.target.closest('[data-open]');
-  if(op){ showTab('t'); window.__tabI = 1; openN = +op.dataset.open; renderTrain(); window.scrollTo(0,0); }
+  if(op){ showTab('t'); window.__tabI = 2; openN = +op.dataset.open; renderTrain(); window.scrollTo(0,0); }
 });
 $('list').addEventListener('click', ev => { if(ev.target.closest('#lgMore')){ lgShowAll = !lgShowAll; render(); } }, true);
 document.addEventListener('visibilitychange', () => { if(!document.hidden && nMode === 'cal' && !$('viewN').hidden){ lgCascade = true; render(); } });
 
 
-/* ---------- today's plate ---------- */
-// one segment per food, as wide as its calories, greener the more protein it carries per calorie
-function renderPlate(){
-  const list = dayList(), t = totals(list), el = $('plate');
-  const shade = e => { const d = e.cal > 0 ? e.pro * 4 / e.cal : 0; return d < .1 ? 'p0' : d < .3 ? 'p1' : d < .5 ? 'p2' : 'p3'; };
-  el.classList.toggle('empty', !list.length);
-  el.innerHTML = list.map((e,i) => `<button type="button" role="listitem" class="${shade(e)}" data-i="${i}" style="flex-grow:${Math.max(1, Math.round(e.cal))}" aria-label="${esc(e.name || 'Food')}, ${Math.round(e.cal)} calories, ${r1(e.pro)} grams protein"></button>`).join('');
-  if(list.length){
-    $('plateMeta').innerHTML = `<b>${list.length} ${list.length === 1 ? 'food' : 'foods'}</b> · ${Math.round(t.cal).toLocaleString()} cal · ${Math.round(t.pro)} g protein`;
-    $('plateTip').textContent = 'Tap a segment to see it. Greener means more protein per calorie.';
-  }else{
-    const prev = state.days[dkey(addDays(current,-1))] || [];
-    $('plateMeta').innerHTML = 'Nothing logged yet today.';
-    $('plateTip').innerHTML = prev.length ? `<button type="button" class="chip" id="plateCopy">Start with ${addDays(current,-1).toLocaleDateString(undefined,{weekday:'long'})}’s ${Math.round(prev.reduce((a,e)=>a+e.cal,0)).toLocaleString()} cal</button>` : '';
-  }
+
+/* ---------- pixel food icons ---------- */
+// 12 by 12 drawings, one letter per pixel; drawn once to images and reused
+const PIX_PAL = {n:'#23262d',w:'#fbfbf7',y:'#f7c32e',b:'#a0612f',B:'#5b3418',t:'#e7c58a',T:'#c4924c',c:'#fff1c9',r:'#e0483a',R:'#9e2a22',g:'#62c64e',G:'#2f8a38',l:'#8fcdf2',L:'#3d7bd9',s:'#9aa3ad',S:'#5d6570',o:'#f08a24',k:'#c96a12',p:'#f4a3a8',P:'#7b4fc9',a:'#cfe58a'};
+const PIX = {"egg":["............","...nnnnn....","..nwwwwwnn..",".nwwwwwwwwn.",".nwwwyyywwn.","nwwwyyyyywwn","nwwwyyyyywwn",".nwwwyyywwn.",".nwwwwwwwn..","..nnwwwwn...","....nnnn....","............"],"chicken":["............",".......nn...","......nwwn..",".....nwwn...","....nbbn....","..nnbbbn....",".nbbbbbbn...","nbbtbbbbn...","nbtbbbbbn...","nbbbbbbn....",".nbbbbn.....","..nnnn......"],"turkey":["............","............","...nnnnnn...","..nbbbbbbn..",".nbtbbbbbbn.","nbtbbbbbbbbn","nbbbbbbbbbbn","nnbbbbbbbbnn","nwnbbbbbbnwn",".n.nnnnnn.n.","............","............"],"steak":["............","...nnnnnn...","..nRRRRRRn..",".nRrrrrrrRn.","nRrrwwrrrrRn","nRrrrwwrrrRn","nRrrrrrrrRn.",".nRrrrrrRn..","..nRRRRRn...","...nnnnn....","............","............"],"groundbeef":["............","............","............","..nnnnnnnn..",".nprprprprn.","nprpprprpprn","nrprpprprprn","nnnnnnnnnnnn","nssssssssssn",".nnnnnnnnnn.","............","............"],"bacon":["............","............","nnnnnnnnnnnn","nRRwRRRwRRRn","nrrrrwrrrrrn","nnnnnnnnnnnn","............","nnnnnnnnnnnn","nrrwrrrwrrrn","nRRRRwRRRRRn","nnnnnnnnnnnn","............"],"sausage":["............","............","............","..nnnnnnnn..",".nRryrryrRn.","nnRrrrrrrRnn","nTnnnnnnnnTn","nTTTTTTTTTTn",".nTTTTTTTTn.","..nnnnnnnn..","............","............"],"fish":["............","............","...nnnnn....",".nnlllllnn.n","nlnllllllnnl","nllllllllnll","nllllllllnnl",".nnlllllnn.n","...nnnnn....","............","............","............"],"shrimp":["............","....nnnn....","..nnoooon...",".nooowoon...","nowoon.nn...","nooon..non..","nowon..non..","noooonnoon..",".nowoooowon.","..nnooooonnn","....nnnnn...","............"],"tuna":["............","............","..nnnnnnnn..",".nssssssssn.","nSssssssssSn","nnnnnnnnnnnn","nLLLLLLLLLLn","nLwwwwwwwwLn","nLLLLLLLLLLn","nnnnnnnnnnnn",".nnnnnnnnnn.","............"],"tofu":["............","............","...nnnnnnnn.","..ncccccccnn",".nnnnnnnnntn",".nwwwwwwwntn",".nwwwwwwwntn",".nwwwwwwwntn",".nwwwwwwwnn.",".nnnnnnnnn..","............","............"],"milk":["....nnnn....","...nwwwwn...","..nwwwwwwn..",".nnnnnnnnnn.",".nwwwwwwwwn.",".nwLLLLLLwn.",".nwLwwwwLwn.",".nwLLLLLLwn.",".nwwwwwwwwn.",".nwwwwwwwwn.",".nnnnnnnnnn.","............"],"cheese":["............","............",".........nn.",".......nnyyn",".....nnyyyyn","...nnyyyyyyn",".nnyyyyyyyyn","nnnnnnnnnnnn","nyyTyyyyyTyn","nyyyyyTyyyyn","nnnnnnnnnnnn","............"],"yogurt":["............",".nnnnnnnnnn.","nssssssssssn","nnnnnnnnnnnn",".nwwwwwwwwn.",".nwwwwwwwwn.",".nppppppppn.","..nwwwwwwn..","..nwwwwwwn..","...nnnnnn...","............","............"],"cottage":["............","............","............","..nnnnnnnn..",".nwcwwcwwcn.","nwwcwwwcwwwn","nnnnnnnnnnnn","nLLLLLLLLLLn","nLwwwwwwwwLn","nLLLLLLLLLLn",".nnnnnnnnnn.","............"],"shake":["....nnnn....","....nSSn....","...nnnnnn...","..nssssssn..","..nwwwwwwn..","..nBBBBBBn..","..nbbbbbbn..","..nbbbbbbn..","..nbbbbbbn..","..nbbbbbbn..","..nnnnnnnn..","............"],"bar":["............","............","............","nnnnnnnnnnnn","nPPPPPPPPPPn","nPPwwwwwwPPn","nPPPPPPPPPPn","nnnnnnnnnnnn","............","............","............","............"],"rice":["............","............","...nnnnnn...","..nwwwwwwn..",".nwwcwwcwwn.","nwwwwwwwwwwn","nnnnnnnnnnnn","nlllllllllln",".nlllllllln.","..nlllllln..","...nnnnnn...","............"],"pasta":["............","............","...nnnnnn...","..nyyryyyn..",".nyrryyyryn.","nyyyyryyyyyn","nnnnnnnnnnnn","nwwwwwwwwwwn",".nwwwwwwwwn.","..nwwwwwwn..","...nnnnnn...","............"],"bread":["............","..nnnnnnnn..",".nTTTTTTTTn.","nTccccccccTn","nTccccccccTn",".nTccccccTn.",".nTccccccTn.",".nTccccccTn.",".nTccccccTn.",".nTTTTTTTTn.",".nnnnnnnnnn.","............"],"bagel":["............","............","...nnnnnn...","..nTTTTTTn..",".nTttTTttTn.","nTTnn..nnTTn","nTTn....nTTn","nTTnn..nnTTn",".nTTTTTTTTn.","..nTTTTTTn..","...nnnnnn...","............"],"tortilla":["............","............","...nnnnnn...","..nttttttn..",".nttttTtttn.","nttTtttttttn","nttttttTtttn","ntttTtttttTn",".nttttttttn.","..nttTtttn..","...nnnnnn...","............"],"oatmeal":["............","............","...nnnnnn...","..ntttbttn..",".nttbtttbtn.","nttttttttttn","nnnnnnnnnnnn","nLLLLLLLLLLn",".nLLLLLLLLn.","..nLLLLLLn..","...nnnnnn...","............"],"cereal":["..nnnnnnnn..","..nrrrrrrn..","..nrwwwwrn..","..nrrrrrrn..","..nryyyyrn..","..nryooyrn..","..nryyyyrn..","..nrrrrrrn..","..nrrrrrrn..","..nrrrrrrn..","..nnnnnnnn..","............"],"potato":["............","............","............","...nnnnn....",".nnbbbbbnn..","nbbtbbbBbbn.","nbbbbBbbbbbn","nbBbbbbbtbbn",".nbbbbbbbbn.","..nnnnnnnn..","............","............"],"fries":["............","...nn.nn.nn.","..nyynyynyyn","..nyynyynyyn","nnnnnnnnnnnn","nrrrrrrrrrrn",".nrrrwwrrrn.",".nrrrrrrrrn.","..nrrrrrrn..","..nnnnnnnn..","............","............"],"banana":["............","..........nn",".........nyn","........nyyn",".......nyyn.","......nyyyn.","....nnyyyn..","..nnyyyyn...","nnyyyyynn...","nyyyynn.....",".nnnn.......","............"],"apple":[".....n.nn...",".....nnGGn..","..nnnnnnnn..",".nrrrrrrrrn.","nrrwrrrrrrrn","nrwrrrrrrrrn","nrrrrrrrrrrn","nrrrrrrrrrRn",".nrrrrrrrRn.",".nrrrnnrrRn.","..nnn..nnn..","............"],"berries":["............","....nGGn....","...nGnnGn...","..nnrrrrnn..",".nrrryrrrrn.","nrryrrrryrrn","nrrrrryrrrrn",".nryrrrrrrn.",".nrrrryrrn..","..nrrrrrn...","...nnnnn....","............"],"orange":["............",".....nGn....","...nnnnnn...","..noooooon..",".nowoooooon.","nowoooooooon","noooooooooon","noooooooookn",".noooooookn.","..noooookn..","...nnnnnn...","............"],"grapes":[".....nn.....","......Gn....","..nnnnnnnn..",".nPwPPwPPPn.",".nPPPPPPwPn.","..nPwPPPPn..","..nPPPwPPn..","...nPPPPn...","....nPwn....",".....nn.....","............","............"],"avocado":["............","....nnnn....","...nGGGGn...","..nGaaaaGn..","..nGaaaaGn..",".nGaaaaaaGn.",".nGaaBBaaGn.","nGaaaBBaaaGn","nGaaaaaaaaGn",".nGaaaaaaGn.","..nnnnnnnn..","............"],"broccoli":["............","...nnnnnn...","..nGgGgGgn..",".nGgGgGgGgn.","nGgGgGgGgGgn",".nGgGgGgGgn.","..nnnggnnn..","....nggn....","....nggn....","...nggggn...","...nnnnnn...","............"],"salad":["............","............","..nGnnGnGn..",".nGgGrgGgGn.","nGgrGgGgrgGn","nnnnnnnnnnnn","nwwwwwwwwwwn",".nwwwwwwwwn.","..nwwwwwwn..","...nnnnnn...","............","............"],"carrot":[".........nn.","........nGGn",".......nnGn.",".....nooon..","....nookon..","...nooon....","..nokon.....",".nooon......",".noon.......","nnn.........","............","............"],"tomato":["............","....nGGn....","..nnnGGnnn..",".nrrrnnrrrn.","nrwrrrrrrrrn","nrwrrrrrrrrn","nrrrrrrrrrrn","nrrrrrrrrrRn",".nrrrrrrrRn.","..nnnnnnnn..","............","............"],"corn":[".....nn.....","....nyyn....","...nyyyyn...","..nyTyyTyn..","..nyyyyyyn..",".GnyTyyTynG.",".GnyyyyyynG.",".GGnyTyTnGG.","..GGnyynGG..","...GGnnGG...","....GGGG....","............"],"beans":["............","............","...nnnnnn...","..nbBbbBbn..",".nBbbBbbBbn.","nbbBbbBbbBbn","nnnnnnnnnnnn","nrrrrrrrrrrn",".nrrrrrrrrn.","..nrrrrrrn..","...nnnnnn...","............"],"nuts":["............","............","....nnn.....","...nbbbn....","..nbtbbbn...","..nbbbbbn...",".nbtbbbbbn..",".nbbbbbbbn..",".nbbbbbbBn..","..nbbbbBn...","...nnnnn....","............"],"pb":["..nnnnnnnn..","..nRRRRRRn..","..nnnnnnnn..",".nbbbbbbbbn.",".nbwwwwwwbn.",".nbwbbbbwbn.",".nbwwwwwwbn.",".nbbbbbbbbn.",".nbbbbbbbbn.",".nnnnnnnnnn.","............","............"],"butter":["............","............","............","...nnnnnnnn.","..nccccccccn",".nnnnnnnnnnn",".nyyyyyyyyyn",".nyyyyyyyyyn",".nnnnnnnnnnn","............","............","............"],"pizza":["............","nnnnnnnnnnnn","nTTTTTTTTTTn",".nyyryyyryn.",".nyyyyryyyn.","..nyryyyyn..","..nyyyryyn..","...nyyryn...","...nyyyyn...","....nyyn....",".....nn.....","............"],"burger":["............","...nnnnnn...","..nTTTTTTn..",".nTTtTTtTTn.","nTTTTTTTTTTn","nggggggggggn","nyyyyyyyyyyn","nBBBBBBBBBBn","nBBBBBBBBBBn","nTTTTTTTTTTn",".nnnnnnnnnn.","............"],"burrito":["............","............","............","..nnnnnnnn..",".nttttttttGn","nttTttttttrn","nttttttTttbn",".ntttTtttGn.","..nnnnnnnn..","............","............","............"],"sandwich":["............","............","..nnnnnnnn..",".nTTTTTTTTn.","nTccccccccTn","nGgGgGgGgGgn","nrrrrrrrrrrn","nyyyyyyyyyyn","nTccccccccTn",".nTTTTTTTTn.","..nnnnnnnn..","............"],"soup":["...s...s....","....s...s...",".nnnnnnnnnn.","nSooooooooSn","nnnnnnnnnnnn","SnssssssssnS",".nssssssssn.",".nssssssssn.",".nssssssssn.","..nnnnnnnn..","............","............"],"sushi":["............","............","............","............","..nnnnnnnn..",".nooowoowon.","nooowoowooon","nnnnnnnnnnnn","nwwwwwwwwwwn","nwwwwwwwwwwn",".nnnnnnnnnn.","............"],"cookie":["............","............","...nnnnnn...","..ntttBttn..",".ntBtttttBn.","ntttttBttttn","ntBttttttBtn","ntttBttttttn",".nttttBtttn.","..nBttttTn..","...nnnnnn...","............"],"chocolate":["............","............",".nnnnnnnnnn.",".nbbnbbnbbn.",".nbBnbBnbBn.",".nnnnnnnnnn.",".nbbnbbnbbn.",".nbBnbBnbBn.",".nnnnnnnnnn.",".nRRRRRRRRn.",".nnnnnnnnnn.","............"],"chips":["..nnnnnnnn..","..nLLLLLLn..",".nLLLLLLLLn.",".nLyyyyyyLn.",".nLyyyyyyLn.",".nLLyyyyLLn.",".nLLLLLLLLn.",".nLwwwwwwLn.",".nLLLLLLLLn.","..nLLLLLLn..","..nnnnnnnn..","............"],"coffee":["....s..s....","...s..s.....","............",".nnnnnnnn...",".nBBBBBBn...",".nwwwwwwnnn.",".nwwwwwwn.n.",".nwwwwwwn.n.",".nwwwwwwnnn.","..nwwwwn....","..nnnnnn....","............"],"soda":["...nnnnnn...","..nssssssn..","..nrrrrrrn..","..nrwwrrrn..","..nrrwwrrn..","..nrrrwwrn..","..nrrrrrrn..","..nrrrrrrn..","..nrrrrrrn..","..nssssssn..","...nnnnnn...","............"],"beer":["............","..nnnnnn....",".nwwwwwwn...",".nyyyyyynnn.",".nyyyyyyn.n.",".nyyyyyyn.n.",".nyyyyyynnn.",".nyyyyyyn...",".nnnnnnnn...","............","............","............"],"other":["............","............","...nnnnnn...",".nnwwwwwwnn.","nwwnnnnnnwwn","nwnwwwwwwnwn","nwnwwwwwwnwn","nwwnnnnnnwwn",".nnwwwwwwnn.","...nnnnnn...","............","............"],"oil":["....nnnn....","....nGGn....","....nnnn....","...nyyyyn...","..nyyyyyyn..","..nyywyyyn..","..nyywyyyn..","..nyyyyyyn..","..nyyyyyyn..","..nyyyyyyn..","..nnnnnnnn..","............"],"juice":["........nn..",".......nn...","..nnnnnnnn..","..nwwwwwwn..","..noooooon..","..nowoooon..","..noooooon..","..noooooon..","..noooooon..","..noooooon..","..nnnnnnnn..","............"],"broth":["............","............","............","..nnnnnnnn..",".ntttttttton","ntTttttTtttn","nnnnnnnnnnnn","nwwwwwwwwwwn",".nwwwwwwwwn.","..nwwwwwwn..","...nnnnnn...","............"],"chicken breast":["............","............","..nnnnn.....",".nccccnnn...","nccwcccccn..","ncccccccccn.","ntcccccccccn","nttcccccccn.",".nttttcccn..","..nnnnnnn...","............","............"],"ham":["............","............","...nnnnnn...","..nppppppn..",".nppwppppnn.","nppppppppppn","nppppppppppn","nnnnnnnnnnnn","nTTTTTTTTTTn",".nnnnnnnnnn.","............","............"],"pork chop":["............","............","...nnnnnnn..","..nttttttnn.",".nttwttttttn","ntttttttttn.","nwnttttttn..","nwwntttttn..",".nnnttttn...","....nnnn....","............","............"],"jerky":["............","...nn.......","..nBbn......","..nbBbnn....","...nBbBbn...","....nbBbbn..",".....nBbBbn.","......nbBbn.",".......nnn..","............","............","............"],"salmon":["............","............","............",".nnnnnnnnnn.","nowoowoowoon","noooooooooon","nowoowoowoon","nSSSSSSSSSSn",".nnnnnnnnnn.","............","............","............"],"crab":["............","nn........nn","nrn......nrn",".nrn.nn.nrn.","..nnrrrrnn..",".nrrrrrrrrn.","nrrwrrrrwrrn","nrrrrrrrrrrn",".nrrrrrrrrn.","nn.n.nn.n.nn","............","............"],"egg whites":["....nnnn....","...nsssn....","..nnnnnnnn..","..nwwwwwwn..","..nwyyyywn..","..nwyyyywn..","..nwwwwwwn..","..nwwwwwwn..","..nwwwwwwn..","..nwwwwwwn..","..nnnnnnnn..","............"],"protein powder":["............","..nnnnnnnn..","..nSSSSSSn..",".nnnnnnnnnn.",".nSSSSSSSSn.",".nSwwwwwwSn.",".nSwLLLLwSn.",".nSwwwwwwSn.",".nSSSSSSSSn.",".nSSSSSSSSn.",".nnnnnnnnnn.","............"],"sour cream":["............","............",".nnnnnnnnnn.","nLLLLLLLLLLn","nnnnnnnnnnnn",".nwwwwwwwwn.",".nwLLLLLLwn.",".nwwwwwwwwn.","..nwwwwwwn..","..nnnnnnnn..","............","............"],"cream cheese":["............","............","............","...nnnnnnnn.","..nwwwwwwwnn",".nnnnnnnnnLn",".nLLLLLLLnLn",".nLwwwwwLnn.",".nLLLLLLLn..",".nnnnnnnnn..","............","............"],"mozzarella":["............","............","....nnnn....","..nnwwwwnn..",".nwwwwwwwwn.",".nwwwwwwcwn.","nwwwwwwwcwwn","nwwwwwwwwwwn",".nwwwwwwwwn.","..nnnnnnnn..","............","............"],"ice cream":["...nnnnnn...","..nppppppn..",".nppwppppnn.",".npppppppppn","..nnnnnnnnn.","..nTtTtTtn..","...nTtTtn...","...ntTtTn...","....nTtn....","....ntTn....",".....nn.....","............"],"quinoa":["............","............","...nnnnnn...","..ncTcTcTn..",".nTcTcTcTcn.","ncTcTcTcTcTn","nnnnnnnnnnnn","nGGGGGGGGGGn",".nGGGGGGGGn.","..nGGGGGGn..","...nnnnnn...","............"],"granola":["............","............","...nnnnnn...","..nTbtTrtn..",".ntTbtTtbTn.","nTtbTtrTtbtn","nnnnnnnnnnnn","nwwwwwwwwwwn",".nwwwwwwwwn.","..nwwwwwwn..","...nnnnnn...","............"],"crackers":["............","............","nnnnnnnnnn..","ntTtTtTtTtn.","ntttttttttnn","ntTtTtTtTtTn","nttttttttttn","nTtTtTtTtTtn","nnttttttttnn",".nnnnnnnnnn.","............","............"],"pancakes":["............",".....nn.....","...nnyynn...","..ntttttttn.",".nTTTTTTTTTn",".ntttttttttn",".nTTTTTTTTTn",".ntttttttttn",".nTTTTTTTTTn","..nnnnnnnnn.","............","............"],"noodles":["............","...n..n.....","...n..n.....","..nyyyyyyn..",".nyyrryyyyn.","nyyyyyyyGyyn","nnnnnnnnnnnn","nrrrrrrrrrrn",".nrwrwrwrwn.","..nrrrrrrn..","...nnnnnn...","............"],"popcorn":["...nn.nn....","..nwwnwwn...",".nwwwwwwwn..",".nwywwwywn..","nrnwwwwwnrn.","nrwnnnnnwrn.",".nrwrwrwrn..",".nwrwrwrwn..","..nrwrwrn...","..nwrwrwn...","..nnnnnn....","............"],"pretzel":["............","...nnnnnn...","..nbbnnbbn..",".nbn.nn.nbn.",".nbn.nn.nbn.","..nbbbbbbn..","..nbnbbnbn..",".nbn.nn.nbn.",".nbbn..nbbn.","..nnn..nnn..","............","............"],"blueberries":["............","............","....nnn.....","...nLLLn....","..nnLwLnnn..",".nLLnLnLLLn.",".nLwLnnLwLn.",".nLLLnnLLLn.","..nnnLLLnn..","....nLwLn...","....nnnnn...","............"],"watermelon":["............","............","............","nnnnnnnnnnnn","nrrnrrrrnrrn","nrrrrrnrrrrn",".nrrrrrrrrn.","..nwwwwwwn..","...nGGGGn...","....nnnn....","............","............"],"pineapple":["....nGn.....","...nGGnGn...","....nGGGn...","...nnnnnn...","..nyTyyTyn..","..nyyTTyyn..","..nTyyyyTn..","..nyyTTyyn..","..nyTyyTyn..","..nyyyyyyn..","...nnnnnn...","............"],"peach":["......nGGn..",".....nnGn...","..nnnnnnnn..",".nooopoooon.","nowoooppooon","noooooppooon","nooooopoooon",".noooopooon.","..noooooon..","...nnnnnn...","............","............"],"mango":["............","........nGn.","...nnnnnnn..","..nyoooooon.",".nyyyoooooon","nyyyyoooooon","nyyyooooooon","nyyoooooookn",".noooooookn.","..noooookn..","...nnnnnn...","............"],"lemon":["............","............","...nnnnnn...","..nyyyyyyn..",".nywyyyyyyn.","nyyyyyyyyyyn","nyyyyyyyyyyn",".nyyyyyyyyn.","..nyyyyyyn..","...nnnnnn...","............","............"],"cherries":["......nn....",".....nGn....","....nGnn....","...nG..Gn...","..nnn...nn..",".nrrrn.nrrn.","nrwrrnnrwrrn","nrrrrnnrrrrn","nrrrRnnrrrRn",".nnnn..nnnn.","............","............"],"pear":[".....nn.....","......n.....","....nnnn....","...naaaan...","...naaaan...","..naaaaaan..",".nawaaaaaan.",".naaaaaaaan.",".naaaaaaaGn.","..naaaaaGn..","...nnnnnn...","............"],"kiwi":["............","............","...nnnnnn...","..nBBBBBBn..",".nBggggggBn.","nBggnwwnggBn","nBgnwwwwngBn","nBggnwwnggBn",".nBggggggBn.","..nBBBBBBn..","...nnnnnn...","............"],"spinach":["............","......nnn...",".....nGGGn..","....nGgGGn..","...nGgGGGn..","..nGgGGGn...",".nGgGGGn....",".nGGGGn.....","..nnGn......","...nGn......","...nn.......","............"],"sweet potato":["............","............","............","..nnnnnn....",".nookooonn..","nooooookoon.","nookooooooon","nooooookooon",".noooooooon.","..nnnnnnnn..","............","............"],"onion":[".....nn.....",".....nn.....","....nPPn....","...nPPPPn...","..nPPwPPPn..",".nPPwPPPPPn.",".nPPPPPPPPn.",".nPPPPPPPPn.","..nPPPPPPn..","...nnnnnn...","....n..n....","............"],"garlic":[".....nn.....",".....nn.....","....nwwn....","...nwwwwn...","..nwcwwcwn..",".nwwcwwcwwn.",".nwwcwwcwwn.",".nwwcwwcwwn.","..nwwwwwwn..","...nnnnnn...","...n.n.n....","............"],"bell pepper":["....nGGn....","....nnGn....","..nnnnnnnn..",".nrrrnnrrrn.","nrwrrnnrrrrn","nrwrrrrrrrrn","nrrrrnrrrrrn","nrrrrnrrrrrn",".nrrrnnrrrn.","..nnn..nnn..","............","............"],"cucumber":["............","............","..........nn",".........nGn","......nnnGgn","....nnGGGgn.","..nnGGgGgn..",".nGGgGGgn...","nGgGGgnn....",".nnnnn......","............","............"],"mushroom":["............","...nnnnnn...","..ntttttttn.",".nttwttttttn","nttttttwtttn","nnnnnnnnnnnn","....nccn....","....nccn....","....nccn....","...nccccn...","...nnnnnn...","............"],"zucchini":["............","............","...........n","..........nG","........nnGn","......nnGgn.","....nnGgGn..","..nnGgGGn...",".nGgGGnn....","nnnnnn......","............","............"],"peas":["............","............","............",".nnnnnnnnnn.","nGgnGgnGgnGn","nggnggnggngn","nnnnnnnnnnnn","nGGGGGGGGGGn",".nnnnnnnnnn.","............","............","............"],"cauliflower":["............","...nnnnnn...","..nwcwwcwn..",".nwwcwwcwwn.","nwcwwcwwcwwn",".nwwcwwcwwn.","..nGnnnnGn..","...nGGGGn...","....nGGn....","....nnnn....","............","............"],"celery":["...nGnGn....","...nGnGn....","...nGGGn....","..nagagan...","..nagagan...","..nagagan...","..nagagan...","..nagagan...","..nagagan...","..nagagan...","..nnnnnnn...","............"],"chili pepper":["............","..........nn",".........nGn","........nnn.","......nnrrn.","....nnrrrrn.","...nrrwrrn..","..nrrrrrn...",".nrrrrnn....",".nrnn.......","..n.........","............"],"olives":["............","............","...nnn......","..nGGGn.....",".nGgGGGn....",".nGGnnGnnn..",".nGGnGGGGGn.","..nnnGgGGGn.","....nGGnnGn.","....nGGGGGn.",".....nnnnn..","............"],"pickle":["............","............","........nnn.","......nnGGGn","....nnGgGGn.","...nGGGGgGn.","..nGgGGGGn..",".nGGGgGGn...",".nGgGGnn....","..nnnn......","............","............"],"eggplant":["......nGGn..",".....nGGn...","....nnnnn...","...nPPPPn...","..nPwPPPPn..",".nPwPPPPPPn.",".nPPPPPPPPn.",".nPPPPPPPPn.","..nPPPPPPn..","...nnnnnn...","............","............"],"hummus":["............","............","...nnnnnn...","..nttttttn..",".nttTyyTttn.","nttTyyyyTttn","nnnnnnnnnnnn","nLLLLLLLLLLn",".nLLLLLLLLn.","..nLLLLLLn..","...nnnnnn...","............"],"honey":["....nnnn....","....nccn....","..nnnnnnnn..",".nooooooooon",".nowooooooon",".nooTTTTooon",".nooTwwTooon",".nooTTTTooon",".nooooooooon",".nooooooooon",".nnnnnnnnnnn","............"],"maple syrup":["....nnnn....","....nRRn....","....nnnn....","...nkkkkn...","..nkkkkkkn..","..nkwkkkkn..","..nkwkkkkn..","..nkkkkkkn..","..nkkkkkkn..","..nkkkkkkn..","..nnnnnnnn..","............"],"jam":["..nnnnnnnn..","..nwrwrwrwn.","..nnnnnnnn..",".nRRRRRRRRn.",".nRwRRRRRRn.",".nRRwwwwRRn.",".nRRwRRwRRn.",".nRRwwwwRRn.",".nRRRRRRRRn.",".nnnnnnnnnn.","............","............"],"ketchup":["....nnnn....","....nwwn....","...nnnnnn...","..nrrrrrrn..","..nrwrrrrn..","..nrwrrrrn..","..nrrwwrrn..","..nrrwwrrn..","..nrrrrrrn..","..nrrrrrrn..","...nnnnnn...","............"],"hot sauce":[".....nn.....",".....nn.....",".....GG.....","....nnnn....","....nrrn....","...nrrrrn...","...nrwrrn...","...nrwwrn...","...nrrwrn...","...nrrrrn...","...nnnnnn...","............"],"wine":["............","..nnnnnnnn..","..nwwwwwwn..","..nRRRRRRn..","..nRwRRRRn..","...nRRRRn...","....nnnn....",".....nn.....",".....nn.....",".....nn.....","...nnnnnn...","............"],"tea":["............","............","............",".nnnnnnnn...",".nbbbbbbn...",".nwwwwwwnnn.",".nwwwwwwn.n.",".nwwGGwwn.n.",".nwwwwwwnnn.","..nwwwwn....","..nnnnnn....","............"],"cream":["....nnnn....","...nwwwwn...","..nwwwwwwn..",".nnnnnnnnnn.",".nwwwwwwwwn.",".nwyyyyyywn.",".nwywwwwywn.",".nwyyyyyywn.",".nwwwwwwwwn.",".nwwwwwwwwn.",".nnnnnnnnnn.","............"]};
+const _icoCache = {};
+function icoURL(key){
+  if(!PIX[key]) key = 'other';
+  if(_icoCache[key]) return _icoCache[key];
+  const c = document.createElement('canvas'); c.width = c.height = 12;
+  const x = c.getContext('2d');
+  PIX[key].forEach((row, y) => [...row].forEach((ch, i) => { if(PIX_PAL[ch]){ x.fillStyle = PIX_PAL[ch]; x.fillRect(i, y, 1, 1); } }));
+  return (_icoCache[key] = c.toDataURL());
 }
-let plateSel = null;
-$('plate').addEventListener('click', ev => {
-  const b = ev.target.closest('[data-i]'); if(!b) return;
-  const i = +b.dataset.i, e = dayList()[i]; if(!e) return;
-  // first tap names it, a second tap on the same one opens it for editing
-  if(plateSel === i){ plateSel = null; editAt = {d:dkey(current), i}; openNDay(new Date()); setTimeout(() => { const box = document.querySelector('.eEdit'); if(box) box.scrollIntoView({block:'center', behavior:'smooth'}); }, 50); return; }
-  plateSel = i;
-  $('plateTip').innerHTML = `<b>${esc(e.name || 'Food')}</b> · ${Math.round(e.cal)} cal · ${r1(e.pro)} g protein. Tap again to edit.`;
+const icoImg = (key, alt) => `<img class="ico" src="${icoURL(key)}" alt="${esc(alt || '')}" ${alt ? '' : 'aria-hidden="true"'}>`;
+// which icon a food gets: the most specific match wins; unmatched vegetables get the salad, unmatched meats the steak
+const ICO_RULES = [
+  ['broth',/broth|stock|bouillon/],['soup',/soup|stew|chili\b|batch/],['egg whites',/egg white/],['chicken breast',/chicken (breast|tender|strip|nugget)/],['peanut butter'.replace(' ',''),/peanut butter|almond butter|nut butter/],
+  ['chocolate',/milk chocolate|dark chocolate|chocolate bar|chocolate chip|candy|cocoa|m&m|snickers|nutella|gumm|^chocolate/],['chips',/\bchips?\b|crisps|doritos|fritos/],['crackers',/cracker|rice cake|crispbread/],['ice cream',/ice cream|frozen yogurt|gelato/],
+  ['cream cheese',/cream cheese/],['sour cream',/sour cream/],
+  ['hot sauce',/hot sauce|sriracha|tabasco/],['sweet potato',/sweet potato|\byam/],['chili pepper',/jalape|chili pepper|chile|habanero|serrano/],
+  ['bell pepper',/bell pepper|\bpeppers?\b/],['protein powder',/protein powder|whey|casein/],['shake',/shake|smoothie/],['bar',/\bbar\b|protein bar|granola bar/],
+  ['egg',/\beggs?\b|omelet|frittata/],['turkey',/turkey/],['chicken',/chicken|drumstick|\bwings?\b/],['ham',/\bham\b|prosciutto|deli/],['bacon',/bacon/],
+  ['sausage',/sausage|hot ?dog|frank|bratwurst|kielbasa|pepperoni|salami|chorizo/],['groundbeef',/ground (beef|pork|chicken)|mince|meatball/],
+  ['jerky',/jerky/],['pork chop',/pork|lamb chop|chop\b/],['salmon',/salmon/],['tuna',/tuna/],['crab',/crab|lobster/],['shrimp',/shrimp|prawn|scallop/],
+  ['fish',/fish|\bcod\b|tilapia|trout|halibut|sardine|anchov|mackerel|haddock|catfish|bass|pollock|whiting/],['steak',/steak|beef|sirloin|ribeye|filet|brisket|roast/],
+  ['tofu',/tofu|tempeh|seitan|edamame/],['cottage',/cottage/],['mozzarella',/mozzarella|burrata|ricotta|string cheese/],['cheese',/cheese|cheddar|parmesan|feta|swiss|brie|gouda|provolone|paneer|halloumi/],
+  ['yogurt',/yogurt|skyr|kefir/],['cream',/\bcream\b|half and half|creamer/],['milk',/milk/],['butter',/butter|ghee|margarine/],['oil',/\boil\b|cooking spray|lard/],
+['juice',/juice|lemonade/],['coffee',/coffee|espresso|latte|cappuccino|americano|mocha/],
+  ['tea',/\btea\b|matcha|chai/],['soda',/soda|cola|sprite|\bpop\b|energy drink|gatorade|sports drink|seltzer/],['wine',/wine|champagne|prosecco/],
+  ['beer',/beer|\bale\b|lager|cider|vodka|whiskey|tequila|\brum\b|\bgin\b|cocktail|margarita|bourbon/],['honey',/honey|agave|sugar|sweetener/],['maple syrup',/syrup/],
+  ['jam',/\bjam\b|jelly|preserves|marmalade/],['ketchup',/ketchup|sauce|mayo|mustard|dressing|bbq|marinara|aioli|soy|pesto/],['avocado',/avocado|guacamole/],
+  ['hummus',/hummus|\bdip\b|tzatziki/],['quinoa',/quinoa|couscous|barley|farro|bulgur/],['noodles',/noodle|ramen|udon|soba|pho\b|lo mein/],
+  ['pasta',/pasta|spaghetti|macaroni|penne|lasagna|fettuccine|linguine|ravioli|tortellini|gnocchi/],['rice',/rice/],['bagel',/bagel/],
+  ['pancakes',/pancake|waffle|french toast|crepe/],['tortilla',/tortilla|\bwrap\b|pita|naan|flatbread/],['pretzel',/pretzel/],['popcorn',/popcorn/],
+  ['bread',/bread|toast|\bbuns?\b|\brolls?\b|muffin|croissant|biscuit|baguette|sourdough|brioche/],['granola',/granola|muesli/],['oatmeal',/\boat/],
+  ['cereal',/cereal|flakes|cheerios|\bo's\b|chex/],['fries',/fries|hash brown|tater/],['potato',/potato/],
+  ['banana',/banana|plantain/],['apple',/apple/],['pear',/\bpear/],['peach',/peach|nectarine|plum|apricot/],['mango',/mango|papaya/],['pineapple',/pineapple/],
+  ['watermelon',/melon|cantaloupe|honeydew/],['lemon',/lemon|\blime/],['orange',/orange|clementine|tangerine|mandarin|grapefruit/],['grapes',/grape|raisin|prune|\bdates?\b/],
+  ['cherries',/cherr/],['blueberries',/blueberr|blackberr/],['berries',/berr/],['kiwi',/kiwi/],
+  ['broccoli',/broccoli/],['cauliflower',/cauliflower/],['spinach',/spinach|kale|chard|arugula|collard/],['salad',/salad|lettuce|greens|romaine|slaw/],
+  ['carrot',/carrot/],['tomato',/tomato|salsa/],['corn',/\bcorn\b|polenta|grits/],['peas',/\bpeas?\b|snap pea|snow pea|green bean/],
+  ['beans',/beans?\b|lentil|chickpea|garbanzo|falafel/],['onion',/onion|shallot|leek|scallion/],['garlic',/garlic/],['cucumber',/cucumber/],['mushroom',/mushroom/],
+  ['zucchini',/zucchini|squash/],['celery',/celery/],['olives',/olive/],['pickle',/pickle|sauerkraut|kimchi/],['eggplant',/eggplant/],
+  ['nuts',/nuts?\b|almond|cashew|pecan|walnut|pistachio|seed|trail mix|peanut|tahini|hemp/],['cookie',/cookie|oreo|brownie|cake|donut|doughnut|\bpie\b|pastry|dessert|cupcake/],
+  ['pizza',/pizza/],['burger',/burger|whopper|big mac/],['burrito',/burrito|taco|quesadilla|enchilada|nacho/],['sandwich',/sandwich|\bsub\b|hoagie|panini|blt/],
+  ['sushi',/sushi|sashimi|nigiri/],
+];
+const VEG_FALLBACK = /pumpkin|vegetable|veggie|asparagus|brussels|cabbage|beet|radish|okra|artichoke|turnip|bok choy|sprout|fennel|parsnip|leafy/;
+const MEAT_FALLBACK = /meat|lamb|veal|venison|bison|duck|goat|\bribs?\b|liver|organ|game|elk/;
+ICO_RULES.forEach(r => { if(r[0] === 'peanutbutter') r[0] = 'pb'; });
+function iconFor(e){
+  if(e.ic && PIX[e.ic]) return e.ic;
+  const nm = String(e.name || '').toLowerCase().replace(/\s*\([^)]*\)\s*$/, '');
+  const cf = (state.custom || []).find(c => c.icon && c.name.toLowerCase() === nm);
+  if(cf) return cf.icon;
+  for(const [k, re] of ICO_RULES) if(re.test(nm)) return k;
+  if(VEG_FALLBACK.test(nm)) return 'salad';
+  if(MEAT_FALLBACK.test(nm)) return 'steak';
+  return 'other';
+}
+
+/* ---------- the Log tab ---------- */
+let lDate = new Date(), lEdit = null;
+const fmtTime = t => new Date(t).toLocaleTimeString(undefined, {hour:'numeric', minute:'2-digit'}).replace(/\s?(AM|PM)$/i, m => m.trim().toLowerCase());
+function renderLog(){
+  const k = dkey(lDate), list = state.days[k] || [], t = totals(list), isToday = k === dkey(new Date());
+  $('lTitle').textContent = isToday ? 'Today' : lDate.toLocaleDateString(undefined, {weekday:'long'});
+  $('lSub').textContent = lDate.toLocaleDateString(undefined, {month:'long', day:'numeric', year:'numeric'});
+  const idx = list.map((e,i) => i);
+  const timed = idx.filter(i => list[i].t).sort((a,b) => list[a].t - list[b].t), untimed = idx.filter(i => !list[i].t);
+  const row = i => {
+    const e = list[i], a = entryAmt(e), ed = lEdit === i;
+    return `<button type="button" class="tlRow${ed ? ' editing' : ''}" data-i="${i}"><span class="tm">${e.t ? fmtTime(e.t) : ''}</span>
+      <span class="icoTile">${icoImg(iconFor(e))}</span>
+      <span class="nm"><b>${esc(a.nm)}</b><span>${a.lab ? esc(amtLabel(a.q, a.u)) + ' · ' : ''}${r1(e.pro)} g protein</span></span>
+      <span class="cal">${Math.round(e.cal).toLocaleString()}</span></button>${ed ? editHTML(e, i).replace('<button class="tool eCancel" type="button">Cancel</button>', '<button class="tool eCancel" type="button">Cancel</button><button class="lnk warn eDel" type="button">Delete</button>') : ''}`;
+  };
+  $('lBody').innerHTML = `<div class="lSum"><div><b class="num">${Math.round(t.cal).toLocaleString()}</b>calories</div><div><b class="num">${Math.round(t.pro)}</b>g protein</div><div><b class="num">${list.length}</b>${list.length === 1 ? 'food' : 'foods'}</div></div>
+    ${list.length ? `<div class="tl">${untimed.length ? `${timed.length ? '<div class="tlGroup">Earlier</div>' : ''}${untimed.map(row).join('')}` : ''}${timed.map(row).join('')}</div>`
+      : `<p class="muted tlEmpty">Nothing logged ${isToday ? 'yet today' : 'this day'}.</p>`}
+    <button type="button" class="ghostBtn tlAdd" id="lAdd">Add food</button>`;
+}
+$('lPrev').onclick = () => { lDate = addDays(lDate, -1); lEdit = null; renderLog(); };
+$('lNext').onclick = () => { lDate = addDays(lDate, 1); lEdit = null; renderLog(); };
+$('lBody').addEventListener('click', ev => {
+  const k = dkey(lDate), list = state.days[k] || [];
+  const box = ev.target.closest('.eEdit');
+  if(box){
+    if(ev.target.closest('.eSave')) saveEdit(box, list);
+    else if(ev.target.closest('.eCancel')){ lEdit = null; renderLog(); }
+    else if(ev.target.closest('.eDel')){ list.splice(+box.dataset.i, 1); lEdit = null; save(); render(); renderLog(); }
+    return;
+  }
+  if(ev.target.closest('#lAdd')){ current = new Date(lDate); if(dkey(lDate) !== dkey(new Date())){ nMode = 'day'; } showTab('n'); window.__tabI = 0; setTimeout(() => $('q').focus(), 60); return; }
+  const r = ev.target.closest('.tlRow'); if(!r) return;
+  lEdit = lEdit === +r.dataset.i ? null : +r.dataset.i; renderLog();
 });
-$('plateOpen').onclick = () => openNDay(new Date());
-$('plateCard').addEventListener('click', ev => { if(ev.target.closest('#plateCopy')) $('copyPrev').click(); });
+$('lBody').addEventListener('input', ev => {
+  if(!ev.target.classList.contains('eQ')) return;
+  const box = ev.target.closest('.eEdit'), e = (state.days[dkey(lDate)] || [])[+box.dataset.i], a = entryAmt(e), q2 = parseFloat(ev.target.value);
+  if(!(q2 > 0)) return;
+  box.querySelector('.eCal').value = Math.round(e.cal*q2/a.q);
+  box.querySelector('.ePro').value = r1(e.pro*q2/a.q);
+});
+$('lBody').addEventListener('keydown', ev => { if(ev.key === 'Enter' && ev.target.closest('.eEdit')){ ev.preventDefault(); saveEdit(ev.target.closest('.eEdit'), state.days[dkey(lDate)] || []); } });
+$('tabL').onclick = () => { if(!$('viewL').hidden){ lDate = new Date(); lEdit = null; } showTab('l'); };
+
+// custom foods: pick an icon, or leave it on automatic
+let fIcon = null;
+function renderIconPicker(){
+  const auto = iconFor({name: $('fName').value || ''});
+  $('fIcon').innerHTML = `<button type="button" role="radio" aria-checked="${!fIcon}" data-k="" title="Automatic">${icoImg(auto)}</button>` +
+    Object.keys(PIX).filter(k => k !== auto).map(k => `<button type="button" role="radio" aria-checked="${fIcon === k}" data-k="${k}" title="${k}">${icoImg(k, k)}</button>`).join('');
+}
+$('fIcon').addEventListener('click', ev => { const b = ev.target.closest('[data-k]'); if(!b) return; fIcon = b.dataset.k || null; renderIconPicker(); });
+$('fName').addEventListener('input', () => { if(!fIcon) renderIconPicker(); });
+document.querySelector('details.custom').addEventListener('toggle', ev => { if(ev.target.open) renderIconPicker(); });
 
 /* ---------- today's weigh-in (on progress) ---------- */
 const LOCK = '<svg viewBox="0 0 18 18" width="18" height="18" aria-hidden="true"><circle cx="9" cy="9" r="9" fill="var(--earned)"/><path d="M5.2 9.4l2.5 2.5 5-5.4" fill="none" stroke="var(--on-earned)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
@@ -6504,7 +6630,7 @@ $('addAll').onclick = () => {
     if(!r.f || !r.qty) return;
     const res = resolve(r.f, r.qty, r.unit), q = r1(r.qty);
     const lab = res.u === 'each' ? `×${q}` : `${q} ${res.u}`;
-    (state.days[k] = state.days[k] || []).push({name:`${r.f.name} (${lab})`, cal:Math.round(res.cal), pro:r1(res.pro), carb:r1(res.carb), fat:r1(res.fat)});
+    (state.days[k] = state.days[k] || []).push({name:`${r.f.name} (${lab})`, cal:Math.round(res.cal), pro:r1(res.pro), carb:r1(res.carb), fat:r1(res.fat), t:Date.now()});
   });
   save(); $('q').value = ''; rows = []; renderPreview(); suggestFoods(); render();
 };
@@ -7232,11 +7358,13 @@ $('tNext').onclick = () => { tMonth = new Date(tMonth.getFullYear(), tMonth.getM
 function showTab(t){
   document.documentElement.classList.toggle('home', t === 'n' && nMode === 'cal');
   if(t === 'n' && nMode === 'cal') lgCascade = true;
-  $('viewN').hidden = t !== 'n'; $('viewT').hidden = t !== 't'; $('viewP').hidden = t !== 'p';
+  $('viewN').hidden = t !== 'n'; $('viewL').hidden = t !== 'l'; $('viewT').hidden = t !== 't'; $('viewP').hidden = t !== 'p';
   $('tabN').setAttribute('aria-current', t === 'n' ? 'page' : 'false');
+  $('tabL').setAttribute('aria-current', t === 'l' ? 'page' : 'false');
   $('tabT').setAttribute('aria-current', t === 't' ? 'page' : 'false');
   $('tabP').setAttribute('aria-current', t === 'p' ? 'page' : 'false');
   if(t === 'n') render();
+  if(t === 'l') renderLog();
   if(t === 't') renderTrain();
   if(t === 'p'){ renderBody(); renderProgress(); }
   window.scrollTo(0,0);
@@ -7432,7 +7560,7 @@ $('copyPrev').onclick = () => {
   const prev = state.days[dkey(addDays(current, -1))] || [];
   if(!prev.length) return;
   const k = dkey(current);
-  state.days[k] = (state.days[k] || []).concat(prev.map(e=>Object.assign({}, e)));
+  state.days[k] = (state.days[k] || []).concat(prev.map(e=>Object.assign({}, e, {t:Date.now()})));
   save(); render();
 };
 
@@ -7447,7 +7575,7 @@ function normalizeState(){
 // only the content below each header moves, so the frosted header never has to re-blur a moving page
 (function(){
   const reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const views = () => ['viewN','viewT','viewP'].map($);
+  const views = () => ['viewN','viewL','viewT','viewP'].map($);
   const current = () => views().find(v => !v.hidden);
   const parts = v => v ? [...v.children].filter(c => c.tagName !== 'HEADER') : [];
   const W = () => window.innerWidth;
@@ -7495,8 +7623,8 @@ function normalizeState(){
   }
 
   // arrows and tab taps slide the content the same way a swipe does
-  [['prev',-1],['next',1],['tPrev',-1],['tNext',1]].forEach(([id,d])=>$(id).addEventListener('click',ev=>{ if(!busy && ev.isTrusted) slideIn(current(), d); }));
-  const order = ['tabN','tabT','tabP'];
+  [['prev',-1],['next',1],['lPrev',-1],['lNext',1],['tPrev',-1],['tNext',1]].forEach(([id,d])=>$(id).addEventListener('click',ev=>{ if(!busy && ev.isTrusted) slideIn(current(), d); }));
+  const order = ['tabN','tabL','tabT','tabP'];
   order.forEach((id,i)=>$(id).addEventListener('click',ev=>{ const was = window.__tabI; window.__tabI = i; if(ev.isTrusted && was != null && was !== i) slideIn(current(), i > was ? 1 : -1); }));
 
   // where a swipe goes: an open day moves to the next day, an open workout to the next workout,
@@ -7504,6 +7632,7 @@ function normalizeState(){
   function swipeTarget(dir){
     const v = current(); if(!v) return null;
     if(v.id === 'viewN' && nMode === 'day') return () => (dir < 0 ? $('next') : $('prev')).click();
+    if(v.id === 'viewL') return () => (dir < 0 ? $('lNext') : $('lPrev')).click();
     if(v.id === 'viewT' && openN !== null){
       const n = openN - dir; if(n < 0 || n > nextIdx() + 30) return null;
       return () => { openN = n; renderTrain(); window.scrollTo(0,0); };
