@@ -1,7 +1,7 @@
 // Keeps the app available offline. It always asks the server for the newest copy first
 // (skipping the phone's 10 minute page cache), and falls back to the saved copy offline.
-const CACHE = 'macro-log-v2';
-const FILES = ['./', 'macro-log.html', 'manifest.webmanifest', 'icon-192.png', 'icon-512.png'];
+const CACHE = 'logger-v3';
+const FILES = ['./', 'macro-log.html', 'manifest.webmanifest', 'icon-192.png', 'icon-512.png', 'apple-touch-icon.png'];
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => Promise.all(FILES.map(f => c.add(new Request(f, {cache: 'reload'})).catch(() => {})))).then(() => self.skipWaiting()));
 });
