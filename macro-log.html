@@ -56,6 +56,7 @@
   :root{--hh:calc(78px + env(safe-area-inset-top))}
   header{box-sizing:border-box;height:var(--hh)}
   #viewN,#viewT,#viewP{padding-top:var(--hh)}
+  #viewT.noHead{padding-top:env(safe-area-inset-top)}
   html{scroll-padding-top:calc(var(--hh) + 8px)}
   [hidden]{display:none!important}
 
@@ -346,6 +347,9 @@
   .exHead{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
   .exHead b{font-family:var(--serif);font-weight:500;font-size:20px;letter-spacing:-.015em}
   .exHead span{font-size:12px;color:var(--muted);white-space:nowrap}
+  .exInfo{font-size:13px;color:var(--muted);margin:4px 0 0;line-height:1.4}
+  .burn{margin:-6px 0 16px;font-size:13px;color:var(--muted)}
+  .burn b{font-size:17px;color:var(--ink);font-weight:700;margin-right:2px}
   .sug{font-size:13px;color:var(--muted);margin:8px 0 14px;padding-left:12px;border-left:2px solid var(--line2);font-style:italic}
   .setHead,.setrow{display:grid;grid-template-columns:26px 1fr 1fr 48px;gap:8px;align-items:center}
   .setHead{font-size:10px;color:var(--muted);margin-bottom:5px;font-weight:600}
@@ -724,7 +728,7 @@ function renderNCal(){
   let train;
   if(it){
     const tp = tplOf(it.n);
-    train = `<div class="trainLine"><div><b>${esc(tp.name)}</b><span>${esc(tp.focus[0].toUpperCase() + tp.focus.slice(1))}, ${tp.ex.length} exercises</span></div>
+    train = `<div class="trainLine"><div><b>${esc(tp.name)}</b><span>${esc(tp.focus[0].toUpperCase() + tp.focus.slice(1))}, ${tp.ex.length} exercises, ~${workoutBurn(tp).cal} cal</span></div>
       <button type="button" class="ghostBtn${it.fin ? ' doneB' : ''}" data-open="${it.n}">${it.fin ? 'Finished ✓' : 'Start'}</button></div>`;
   }else{
     const nx = Object.values(wk).filter(x => x.date > today && !x.fin).sort((a,b) => a.date - b.date)[0];
@@ -6808,6 +6812,93 @@ function infoOf(n){
 }
 
 // progression: stay at a weight until every set reaches the top of the rep range, then add the lift's increment
+// what each exercise is and what it works, shown under its name
+const EX_INFO = {
+  'Barbell bench press':'Press the bar from your chest lying flat. Chest, front delts, triceps.',
+  'Dumbbell bench press':'Flat press with a dumbbell in each hand, deeper stretch than the bar. Chest, front delts, triceps.',
+  'Machine chest press':'Seated press on a guided path, easy to push close to failure. Chest, front delts, triceps.',
+  'Smith machine bench press':'Bench press on a fixed bar track. Chest, front delts, triceps.',
+  'Chest-supported row':'Row with your chest on a pad so the lower back stays out of it. Upper back, lats, rear delts.',
+  'T-bar row, chest supported':'Chest-on-pad row with a heavier handle. Mid and upper back, lats.',
+  'Seated cable row':'Pull the handle to your stomach, squeeze the shoulder blades. Mid back, lats, biceps.',
+  'Machine row':'Guided row on a plate or pin machine. Mid back, lats, rear delts.',
+  'One-arm cable row':'Single-arm cable row for a longer pull. Lats, mid back.',
+  'One-arm dumbbell row':'Brace on a bench and row one dumbbell to your hip. Lats, mid back.',
+  'Seated dumbbell shoulder press':'Press dumbbells overhead from a seat with back support. Front and side delts, triceps.',
+  'Machine shoulder press':'Overhead press on a guided path. Front and side delts, triceps.',
+  'Standing dumbbell press':'Overhead press standing, the core works to keep you upright. Delts, triceps, core.',
+  'Landmine press':'Press one end of a barbell up and forward from the shoulder. Upper chest, front delts.',
+  'Arnold press':'Dumbbell press that rotates the palms from facing you to facing out. Front and side delts.',
+  'Lat pulldown':'Pull the bar to your upper chest from a seat. Lats, upper back, biceps.',
+  'Neutral-grip pulldown':'Pulldown with palms facing each other, easier on the shoulders. Lats, biceps.',
+  'Single-arm cable pulldown':'One arm at a time for a full stretch. Lats.',
+  'Assisted pull-up':'Pull-up with a counterweight helping. Enter the assist as negative or leave it blank. Lats, upper back, biceps.',
+  'Pull-up':'Hang from a bar and pull your chest up to it. Bodyweight, add weight once it gets easy. Lats, upper back, biceps.',
+  'Cable lateral raise':'Raise the cable out to the side to shoulder height. Side delts.',
+  'Dumbbell lateral raise':'Raise dumbbells out to the sides. Side delts.',
+  'Machine lateral raise':'Lateral raise on a machine, steady tension. Side delts.',
+  'Triceps pushdown':'Push a cable bar down, elbows pinned at your sides. Triceps.',
+  'Rope pushdown':'Pushdown with a rope, spread the ends at the bottom. Triceps.',
+  'Overhead cable triceps extension':'Face away from the cable and extend overhead, big stretch on the long head. Triceps.',
+  'Skull crushers':'Lower an EZ bar toward your forehead lying down, then extend. Triceps.',
+  'Ab crunch machine':'Curl your ribs toward your hips against the pad. Abs.',
+  'Hack squat':'Squat on an angled sled with your back on the pad. Quads, glutes.',
+  'Pendulum squat':'Squat on a swinging lever, very deep knee bend. Quads.',
+  'Leg press':'Push the sled away with your feet. Quads, glutes.',
+  'Smith machine squat':'Squat on a fixed bar track, feet a little forward. Quads, glutes.',
+  'Belt squat':'Squat with the load on a hip belt, no spine loading. Quads, glutes.',
+  'Dumbbell split squat':'Staggered stance, drop the back knee toward the floor. Quads, glutes.',
+  'Walking lunge':'Step forward into a lunge, alternating legs. Quads, glutes.',
+  'Bulgarian split squat':'Back foot on a bench, squat on the front leg. Quads, glutes.',
+  'Lying leg curl':'Lie face down and curl the pad toward your glutes. Hamstrings.',
+  'Seated leg curl':'Seated curl, the hamstrings work from a long stretch. Hamstrings.',
+  'Assisted nordic curl':'Kneel with ankles held and lower your body slowly forward. Bodyweight. Hamstrings.',
+  'Leg extension':'Straighten your knees against the pad. Quads.',
+  'Single-leg extension':'Leg extension one side at a time. Quads.',
+  'Sissy squat':'Lean back and bend the knees forward, heels up. Bodyweight. Quads.',
+  'Standing calf raise':'Rise onto your toes with straight knees. Calves.',
+  'Seated calf raise':'Calf raise with bent knees. Soleus, the lower calf.',
+  'Leg press calf raise':'Push the sled with the balls of your feet. Calves.',
+  'Hanging leg raise':'Hang from a bar and raise your legs to hip height or higher. Bodyweight. Lower abs, hip flexors.',
+  'Hanging knee raise':'Hang and pull your knees to your chest, the easier version. Bodyweight. Abs, hip flexors.',
+  'Captain’s chair leg raise':'Forearms on the pads, raise your legs. Bodyweight. Lower abs, hip flexors.',
+  'Lying leg raise':'Lie flat and lift straight legs to vertical. Bodyweight. Lower abs.',
+  'Incline dumbbell press':'Press dumbbells on a bench set to about 30 degrees. Upper chest, front delts.',
+  'Incline machine press':'Incline press on a guided path. Upper chest, front delts.',
+  'Incline barbell press':'Barbell press on an incline bench. Upper chest, front delts, triceps.',
+  'Low-incline Smith press':'Smith press on a low incline. Upper chest.',
+  'Face pull':'Pull a rope toward your face, hands finishing beside your ears. Rear delts, upper back.',
+  'Reverse pec deck':'Sit facing the pad and sweep the handles back. Rear delts.',
+  'Rear delt cable fly':'Cross the cables and pull them apart at shoulder height. Rear delts.',
+  'Barbell hip thrust':'Upper back on a bench, drive the bar up with your hips. Glutes.',
+  'Hip thrust machine':'Hip thrust on a machine, quick to set up. Glutes.',
+  'Smith machine hip thrust':'Hip thrust on a fixed bar track. Glutes.',
+  'Glute bridge':'Hip thrust from the floor, shorter range. Bodyweight or a plate. Glutes.',
+  '45-degree back extension':'Hinge over the pad and lift back up, round the upper back a little for glutes. Bodyweight, hold a plate to add load. Glutes, hamstrings, lower back.',
+  'Reverse hyperextension':'Lie face down and swing the legs up behind you. Glutes, lower back.',
+  'Back extension machine':'Seated extension against a pad. Lower back, glutes.',
+  'Leg press, feet high and wide':'Feet high and wide on the sled shifts work to the hips. Glutes, hamstrings, adductors.',
+  'Hack squat, feet high':'Feet high on the platform. Glutes, hamstrings.',
+  'Cable pull-through':'Face away from a low cable and hinge, then drive the hips forward. Glutes, hamstrings.',
+  'Hip abduction machine':'Push your knees out against the pads. Outer glutes.',
+  'Kettlebell swing':'Hinge and snap the hips to swing the bell to chest height. Glutes, hamstrings.',
+  'Weighted dip':'Dip between bars with weight on a belt. Chest, triceps, front delts.',
+  'Weighted push-up':'Push-up with a plate on your back. Chest, triceps, front delts.',
+  'EZ-bar curl':'Curl an angled bar, easier on the wrists. Biceps.',
+  'Dumbbell curl':'Curl dumbbells, palms up. Biceps.',
+  'Cable curl':'Curl a cable bar, tension all the way through. Biceps.'
+};
+// moves done with your own bodyweight; added weight is optional
+const BW_EX = new Set(['Pull-up','Assisted pull-up','Hanging leg raise','Hanging knee raise','Captain’s chair leg raise','Lying leg raise',
+  'Assisted nordic curl','Sissy squat','45-degree back extension','Glute bridge']);
+// rough calories for a whole workout: about 45 s of work and 90 s of rest per set, plus warm-up,
+// at 5 METs (moderate to hard lifting), using the latest logged bodyweight
+function workoutBurn(tp){
+  const sets = tp.ex.reduce((a,e) => a + e.sets, 0), min = 6 + sets * 2.25;
+  const bw = Object.keys(state.body).sort().reverse().map(k => state.body[k] && state.body[k].w).find(Boolean) || 180;
+  const kcal = 5 * (bw / 2.2046) * (min / 60);
+  return {cal: Math.round(kcal / 100) * 100, min: Math.round(min / 5) * 5};
+}
 function lastPerf(name, excludeN){
   let best = null;
   for(const key in state.train.sessions){
@@ -6823,7 +6914,7 @@ function lastPerf(name, excludeN){
 }
 function suggest(te, name, excludeN){
   const p = lastPerf(name, excludeN);
-  if(!p) return {w:'', text:'There is no history for this lift yet, so pick a weight that leaves about two reps in reserve on the first set.'};
+  if(!p) return {w:'', text: BW_EX.has(name) ? 'No history yet. Start with bodyweight and leave the weight blank; add weight only once every set reaches the top of the range.' : 'There is no history for this lift yet, so pick a weight that leaves about two reps in reserve on the first set.'};
   const w = Math.max(...p.sets.map(s=>+s.w || 0));
   const summary = p.sets.map(s=>`${s.w ? s.w : 'bodyweight'}×${s.r}`).join(', ');
   if(p.sets.every(s=>s.r >= te.hi)){
@@ -6846,6 +6937,7 @@ let openN = null;
 
 function renderTrain(){
   $('tHeader').hidden = openN !== null;
+  $('viewT').classList.toggle('noHead', openN !== null);
   if(openN !== null) renderSessionView(); else renderMonthView();
 }
 
@@ -6946,15 +7038,17 @@ function renderSessionView(){
     const te = s.tpl.ex[j], sg = suggest(te, e.n, n);
     const alts = [te.n].concat(te.alts).filter(x=>x !== e.n);
     const head = te.ab && !(j > 0 && s.tpl.ex[j-1].ab) ? '<h2 style="margin:26px 0 0">Ab work</h2>' : '';
+    const bw = BW_EX.has(e.n);
     const sets = e.sets.map((st,k)=>`
       <div class="setrow ${st.ok ? 'ok' : ''}" data-j="${j}" data-k="${k}"><span class="sn">${k+1}</span>
-        <input class="sw" type="number" inputmode="decimal" step="any" min="0" placeholder="lb" value="${st.w === '' ? '' : st.w}" aria-label="Weight for set ${k+1}">
+        <input class="sw" type="number" inputmode="decimal" step="any" min="0" placeholder="${bw ? 'BW' : 'lb'}" value="${st.w === '' || (bw && !+st.w) ? '' : st.w}" aria-label="${bw ? 'Added weight, optional,' : 'Weight'} for set ${k+1}">
         <input class="sr" type="number" inputmode="numeric" min="0" placeholder="${te.lo}-${te.hi}" value="${st.r === '' ? '' : st.r}" aria-label="Reps for set ${k+1}">
         <button class="chk" type="button" aria-pressed="${st.ok}" aria-label="Mark set ${k+1} done">✓</button></div>`).join('');
     return `${head}<section class="ex" data-j="${j}">
       <div class="exHead"><b>${esc(e.n)}</b><span>${te.sets} sets of ${te.lo} to ${te.hi}</span></div>
+      ${EX_INFO[e.n] ? `<p class="exInfo">${esc(EX_INFO[e.n])}</p>` : ''}
       <p class="sug">${esc(sg.text)}</p>
-      <div class="setHead"><span></span><span>Weight (lb)</span><span>Reps</span><span></span></div>${sets}
+      <div class="setHead"><span></span><span>${bw ? 'Added lb, optional' : 'Weight (lb)'}</span><span>Reps</span><span></span></div>${sets}
       <div class="exFoot"><button class="tool addSet" type="button">Add a set</button>
         ${alts.length ? `<select class="swap" aria-label="Swap this exercise"><option value="">Swap exercise</option>${alts.map(x=>`<option>${esc(x)}</option>`).join('')}</select>` : ''}</div>
     </section>`;
@@ -6982,6 +7076,7 @@ function renderSessionView(){
     <button class="back" id="tBack">‹ Back to the calendar</button>
     <div class="sessTitle">${s.tpl.name}</div>
     <p class="sessSub">${esc(s.tpl.focus.charAt(0).toUpperCase()+s.tpl.focus.slice(1))}. ${when}</p>
+    <p class="burn"><b class="num">~${workoutBurn(s.tpl).cal}</b> cal burned, about ${workoutBurn(s.tpl).min} min</p>
     <section class="card"><p class="muted" style="margin:0" id="setCount">${nOk} of ${nAll} sets logged so far.</p>${push}${swapUI}</section>
     ${exHtml}
     ${footer}`;
