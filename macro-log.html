@@ -1993,62 +1993,117 @@ function normalizeState(){
 }
 
 /* ---------- swipe gestures ---------- */
+// only the content below each header moves, so the frosted header never has to re-blur a moving page
 (function(){
   const reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
   const views = () => ['viewN','viewT','viewP'].map($);
   const current = () => views().find(v => !v.hidden);
-  const slide = (el, dir) => { if(!el || !el.animate) return;
-    const d = reduce ? 0 : dir*90;
-    el.animate([{transform:`translateX(${d}px)`,opacity:0},{transform:'none',opacity:1}],{duration:reduce ? 200 : 320,easing:'cubic-bezier(.2,.8,.2,1)'}); };
-  // the page glides off in the swipe direction, then the new day glides in from the other side
-  const goWith = (el, dir, fn) => {
-    if(!el || !el.animate){ fn(); return; }
-    const out = el.animate([{transform:'none',opacity:1},{transform:`translateX(${reduce ? 0 : -dir*70}px)`,opacity:0}],{duration:150,easing:'ease-in',fill:'forwards'});
-    out.onfinish = () => { fn(); out.cancel(); };
-  };
-  // arrows slide the content the same way a swipe does
-  [['prev',-1],['next',1],['tPrev',-1],['tNext',1]].forEach(([id,d])=>$(id).addEventListener('click',()=>slide(current(), d)));
-  ['tabN','tabT','tabP'].forEach((id,i)=>$(id).addEventListener('click',()=>{ const was = window.__tabI; window.__tabI = i; if(was != null && was !== i) slide(current(), i > was ? 1 : -1); }));
-  window.__tabI = 0;
+  const parts = v => v ? [...v.children].filter(c => c.tagName !== 'HEADER') : [];
+  const W = () => window.innerWidth;
+  const ease = 'cubic-bezier(.2,.8,.2,1)';
+  let busy = false;
+
+  const setX = (els, x) => { const o = String(1 - Math.min(Math.abs(x), W())/W()*.6);
+    els.forEach(e => { e.style.transform = x ? `translate3d(${x}px,0,0)` : ''; e.style.opacity = x ? o : ''; }); };
+  const prep = (els, on) => els.forEach(e => e.style.willChange = on ? 'transform, opacity' : '');
+  // never wait on an animation longer than it should take, so a paused page can't leave a swipe stuck
+  const done = (a, ms) => Promise.race([a.finished.catch(()=>{}), new Promise(r => setTimeout(r, ms + 120))]);
+  const run = (els, frames, opts) => Promise.all(els.map(e => e.animate ? done(e.animate(frames, opts), opts.duration) : null));
+  const op = x => 1 - Math.min(Math.abs(x), W())/W()*.6;
+
+  // new content glides in from side `from` (+1 right, -1 left)
+  async function slideIn(view, from){
+    const els = parts(view); if(!els.length) return;
+    if(reduce){ await run(els, [{opacity:0},{opacity:1}], {duration:160}); return; }
+    prep(els, true);
+    await run(els, [{transform:`translate3d(${from*56}px,0,0)`,opacity:0},{transform:'translate3d(0,0,0)',opacity:1}], {duration:260, easing:ease});
+    prep(els, false);
+  }
+  // current content leaves toward `dir` starting from wherever the finger left it, then fn swaps it, then the new one arrives
+  async function leave(view, dir, x0, fn){
+    if(busy) return; busy = true;
+    try { await leaveRun(view, dir, x0, fn); } finally { busy = false; }
+  }
+  async function leaveRun(view, dir, x0, fn){
+    const els = parts(view);
+    if(els.length && !reduce){
+      const x1 = dir*W()*.45, dur = Math.max(90, Math.min(180, Math.abs(x1 - x0)/1.8));
+      prep(els, true);
+      const anims = els.map(e => e.animate([{transform:`translate3d(${x0}px,0,0)`,opacity:op(x0)},{transform:`translate3d(${x1}px,0,0)`,opacity:0}], {duration:dur, easing:'cubic-bezier(.4,0,1,1)', fill:'forwards'}));
+      setX(els, 0);
+      await Promise.all(anims.map(a => done(a, dur)));
+      fn(); anims.forEach(a => a.cancel());
+      await slideIn(current(), -dir);
+    } else { setX(els, 0); fn(); await slideIn(current(), -dir); }
+  }
+  async function snapBack(view, x0){
+    const els = parts(view); setX(els, 0);
+    if(!x0 || reduce){ prep(els, false); return; }
+    await run(els, [{transform:`translate3d(${x0}px,0,0)`,opacity:op(x0)},{transform:'translate3d(0,0,0)',opacity:1}], {duration:220, easing:ease});
+    prep(els, false);
+  }
+
+  // arrows and tab taps slide the content the same way a swipe does
+  [['prev',-1],['next',1],['tPrev',-1],['tNext',1]].forEach(([id,d])=>$(id).addEventListener('click',ev=>{ if(!busy && ev.isTrusted) slideIn(current(), d); }));
   const order = ['tabN','tabT','tabP'];
-  let sx = 0, sy = 0, st = null, mode = null, view = null, lock = false;
+  order.forEach((id,i)=>$(id).addEventListener('click',()=>{ const was = window.__tabI; window.__tabI = i; if(was != null && was !== i) slideIn(current(), i > was ? 1 : -1); }));
+  window.__tabI = 0;
+
+  // a subsection that an edge swipe backs out of; add more here as they appear
+  const subBack = () => (!$('viewT').hidden && openN !== null) ? $('tBack') : null;
+
   const EDGE = 28;
+  let sx = 0, sy = 0, st0 = 0, st = null, mode = null, view = null, lock = false, dx = 0, raf = 0, els = [], back = null;
+  const paint = () => { raf = 0; setX(els, dx); };
   document.addEventListener('touchstart', ev=>{
-    const t = ev.touches[0]; sx = t.clientX; sy = t.clientY; st = ev.target; lock = false; view = current();
+    if(busy || ev.touches.length > 1){ mode = null; return; }
+    const t = ev.touches[0]; sx = t.clientX; sy = t.clientY; st0 = ev.timeStamp; st = ev.target; lock = false; dx = 0; view = current(); els = [];
     if(st.closest('input, select, textarea, button.chk, #scanModal')){ mode = null; return; }
-    mode = (sx <= EDGE || sx >= window.innerWidth - EDGE) ? 'edge' : 'page';
+    const edge = sx <= EDGE ? 1 : sx >= W() - EDGE ? -1 : 0;   // 1 = left edge, -1 = right edge
+    back = edge ? subBack() : null;
+    mode = !back ? 'page' : edge === 1 ? 'backL' : 'backR';
   }, {passive:true});
   document.addEventListener('touchmove', ev=>{
-    if(mode !== 'page' || !view) return;
-    const t = ev.touches[0], dx = t.clientX - sx, dy = t.clientY - sy;
-    if(!lock){ if(Math.abs(dx) > 14 && Math.abs(dx) > 2*Math.abs(dy)) lock = true; else return; }
-    if(st.closest('.entry') || (view.id === 'viewT' && openN !== null) || view.id === 'viewP') return;
-    view.style.transform = `translateX(${dx*.7}px)`; view.style.opacity = String(1 - Math.min(Math.abs(dx),240)/500);
+    if(!mode || !view) return;
+    const t = ev.touches[0], mx = t.clientX - sx, my = t.clientY - sy;
+    if(!lock){ if(Math.abs(mx) > 10 && Math.abs(mx) > 1.5*Math.abs(my)) { lock = true; sx += Math.sign(mx)*10; } else { if(Math.abs(my) > 14) mode = null; return; } }
+    dx = t.clientX - sx;
+    if(mode === 'backL') dx = Math.max(0, dx);
+    else if(mode === 'backR') dx = Math.min(0, dx);
+    else if(st.closest('.entry') || (view.id === 'viewT' && openN !== null) || view.id === 'viewP') return;
+    if(!els.length){ els = parts(view); prep(els, true); }
+    if(!raf) raf = requestAnimationFrame(paint);
   }, {passive:true});
-  document.addEventListener('touchend', ev=>{
+  const end = ev=>{
     if(!mode) return;
     const m = mode; mode = null;
-    const t = ev.changedTouches[0], dx = t.clientX - sx, dy = t.clientY - sy;
-    if(view){ view.style.transform = ''; view.style.opacity = ''; }
-    if(Math.abs(dx) < 55 || Math.abs(dx) < 2*Math.abs(dy)) return;
-    if(m === 'edge'){
-      // from the left edge drag right for the previous section, from the right edge drag left for the next
-      const i = order.findIndex(id => $(id).getAttribute('aria-current') === 'page');
-      const j = sx <= EDGE ? i - 1 : i + 1;
-      if(dx > 0 === (sx <= EDGE) && j >= 0 && j < order.length) goWith(view, dx < 0 ? 1 : -1, () => $(order[j]).click());
+    if(raf){ cancelAnimationFrame(raf); raf = 0; }
+    const moved = els.length > 0, x0 = dx;
+    const dt = Math.max(1, ev.timeStamp - st0), v = Math.abs(x0)/dt;
+    const commit = lock && ev.type === 'touchend' && (Math.abs(x0) > W()*.22 || (Math.abs(x0) > 40 && v > .45));
+    const fin = () => { if(moved) snapBack(view, x0); };
+
+    if(m === 'backL' || m === 'backR'){
+      if(commit) leave(view, Math.sign(x0), x0, () => back.click()); else fin();
       return;
     }
     const entry = st && st.closest ? st.closest('.entry') : null;
     if(entry){
-      document.querySelectorAll('.entry.swiped').forEach(e=>{ if(e !== entry) e.classList.remove('swiped'); });
-      entry.classList.toggle('swiped', dx < 0);
+      if(lock && Math.abs(x0) > 30){
+        document.querySelectorAll('.entry.swiped').forEach(e=>{ if(e !== entry) e.classList.remove('swiped'); });
+        entry.classList.toggle('swiped', x0 < 0);
+      }
       return;
     }
-    document.querySelectorAll('.entry.swiped').forEach(e=>e.classList.remove('swiped'));
-    const dir = dx < 0 ? 1 : -1;
-    if(!$('viewN').hidden) goWith(view, dir, () => (dx < 0 ? $('next') : $('prev')).click());
-    else if(!$('viewT').hidden && openN === null) goWith(view, dir, () => (dx < 0 ? $('tNext') : $('tPrev')).click());
-  }, {passive:true});
+    if(lock) document.querySelectorAll('.entry.swiped').forEach(e=>e.classList.remove('swiped'));
+    if(!commit || !moved){ fin(); return; }
+    const dir = x0 < 0 ? -1 : 1;
+    if(view.id === 'viewN') leave(view, dir, x0, () => (dir < 0 ? $('next') : $('prev')).click());
+    else if(view.id === 'viewT' && openN === null) leave(view, dir, x0, () => (dir < 0 ? $('tNext') : $('tPrev')).click());
+    else fin();
+  };
+  document.addEventListener('touchend', end, {passive:true});
+  document.addEventListener('touchcancel', end, {passive:true});
 })();
 
 load().then(()=>{
