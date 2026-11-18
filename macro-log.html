@@ -151,7 +151,7 @@
   #nCal .day .mk{width:18px;height:18px;display:flex;align-items:center;justify-content:center}
   #nCal .day .hit{width:18px;height:18px;border-radius:50%;background:var(--good,#1f9d55);color:#fff;display:flex;align-items:center;justify-content:center}
   #nCal .day .hit svg{width:11px;height:11px}
-  #nCal .day .lg{width:6px;height:6px;border-radius:50%;background:var(--line2)}
+  #nCal .day .yld{width:19px;height:17px;display:block}
   #nCal .day .dn{font-size:12px}
   .todayCard{background:none;border:0;padding:0;display:flex;justify-content:space-between;align-items:center;gap:12px;width:100%;text-align:left;font:inherit;color:var(--ink);cursor:pointer}
   .todayCard .tcBig{font-size:34px;font-weight:800;letter-spacing:-.035em;line-height:1}
@@ -330,7 +330,7 @@
     --acc:#2f6bff; --accInk:#fff; --panel:#fff;
     --glass:rgba(244,245,247,.86); --glassBd:rgba(14,17,22,.08); --track:rgba(14,17,22,.08);
     --uBg:#e8eefc; --uInk:#1f4fd1; --uSolid:#2f6bff; --lBg:#fdeeda; --lInk:#a65f0a; --lSolid:#f2a93b;
-    --good:#1f9d55;
+    --good:#1f9d55; --warn:#e5a800;
   }
   @media (prefers-color-scheme:dark){
     :root[data-skin="sport"]{
@@ -340,7 +340,7 @@
       --acc:#4f86ff; --accInk:#fff; --panel:#12151a;
       --glass:rgba(11,13,16,.84); --glassBd:rgba(255,255,255,.08); --track:rgba(255,255,255,.1);
       --uBg:#121c33; --uInk:#9dbcff; --uSolid:#2f5fd6; --lBg:#2a1f0e; --lInk:#ffc873; --lSolid:#b87a1a;
-      --good:#2fb36a;
+      --good:#2fb36a; --warn:#f5c518;
     }
   }
   [data-skin="sport"] body{background:var(--bg);font-size:16px;font-feature-settings:"tnum","cv11";letter-spacing:-.005em}
@@ -597,25 +597,28 @@ const G = {g:1,kg:1000,oz:28.35,lb:453.6};
 /* ---------- nutrition calendar (home) ---------- */
 let nMode = 'cal';
 let nMonth = (() => { const n = new Date(); return new Date(n.getFullYear(), n.getMonth(), 1); })();
-// a day counts when protein reaches the goal and calories land within 100 of the goal
+// a day counts when protein reaches the goal and calories stay no more than 100 over (any amount under is fine)
 function dayHit(list){
   if(!list || !list.length) return null;
   const t = totals(list), g = state.targets;
-  return t.pro >= (g.pro || 0) && Math.abs(t.cal - (g.cal || 0)) <= 100;
+  return t.pro >= (g.pro || 0) && t.cal <= (g.cal || 0) + 100;
 }
+const dayOver = list => !!(list && list.length && totals(list).cal > (state.targets.cal || 0) + 100);
 function renderNCal(){
   const first = nMonth, last = new Date(first.getFullYear(), first.getMonth()+1, 0);
   const now = new Date(), today = new Date(now.getFullYear(), now.getMonth(), now.getDate()), todayK = dkey(today);
   const gridStart = addDays(first, -first.getDay()), gridEnd = addDays(last, 6 - last.getDay());
   let cells = '', hits = 0, logged = 0;
+  const YIELD = '<svg class="yld" viewBox="0 0 20 18" aria-hidden="true"><path d="M2.2 2.5h15.6c.9 0 1.4 1 .9 1.7l-7.8 11.6c-.4.6-1.4.6-1.8 0L1.3 4.2c-.5-.7 0-1.7.9-1.7z" fill="var(--warn,#e5a800)"/></svg>';
   const CHECK = '<svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 6.3l2.3 2.3 4.7-5"/></svg>';
   for(let dt = gridStart; dt <= gridEnd; dt = addDays(dt,1)){
     const k = dkey(dt), h = dayHit(state.days[k]), inMonth = dt.getMonth() === first.getMonth();
     const cls = ['day']; if(!inMonth) cls.push('out'); if(k === todayK) cls.push('today');
-    if(inMonth && h !== null && k !== todayK){ logged++; if(h) hits++; }
-    if(inMonth && k === todayK && h){ logged++; hits++; }
-    const mk = h ? `<span class="hit">${CHECK}</span>` : h === false ? '<span class="lg"></span>' : '';
-    const lbl = dt.toLocaleDateString(undefined,{weekday:'long',month:'long',day:'numeric'}) + (h ? ', on target' : h === false ? ', logged' : '');
+    if(inMonth && h !== null && (k < todayK || h || dayOver(state.days[k]))){ logged++; if(h) hits++; }
+    // today is still in progress, so it only gets the yield sign once calories are already past the line
+    const miss = h === false && (k < todayK || (k === todayK && dayOver(state.days[k])));
+    const mk = h ? `<span class="hit">${CHECK}</span>` : miss ? YIELD : '';
+    const lbl = dt.toLocaleDateString(undefined,{weekday:'long',month:'long',day:'numeric'}) + (h ? ', on target' : miss ? ', missed' : '');
     cells += `<button class="${cls.join(' ')}" data-d="${k}" aria-label="${esc(lbl)}"><span class="dn">${dt.getDate()}</span><span class="mk">${mk}</span></button>`;
   }
   // streak of on-target days, counting today only once it is on target
@@ -630,7 +633,7 @@ function renderNCal(){
       <div class="dow"><span>Sun</span><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span></div>
       <div class="grid">${cells}</div>
     </section>
-    <p class="legend">A check means you hit your protein and landed within 100 calories of your calorie goal. A dot means the day has food logged. Tap any day to open it.</p>
+    <p class="legend">A check means you hit your protein and stayed no more than 100 calories over your goal. Going under is fine. A yield sign means protein came up short or calories went more than 100 over. Tap any day to open it.</p>
     <section class="card"><button class="todayCard" id="nToday" type="button">
       <div><div class="tcBig num" style="${left < 0 ? 'color:var(--danger)' : ''}">${(left < 0 ? '\u2212' : '') + Math.abs(left).toLocaleString()}</div>
       <div class="tcLbl">calories left today, ${proLeft ? proLeft + ' g protein to go' : 'protein goal hit'}${streak > 1 ? `, ${streak} days on target in a row` : ''}</div></div>
