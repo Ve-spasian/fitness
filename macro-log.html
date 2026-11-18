@@ -52,11 +52,17 @@
                radial-gradient(80% 40% at 40% 100%,var(--blob3),transparent 72%)}
   .num{font-variant-numeric:tabular-nums lining-nums;font-feature-settings:"tnum","lnum"}
   .wrap{max-width:520px;margin:0 auto;padding:0 20px 120px}
+  /* every header is the same height, so the content offset is a constant */
+  :root{--hh:calc(78px + env(safe-area-inset-top))}
+  header{box-sizing:border-box;height:var(--hh)}
+  #viewN,#viewT,#viewP{padding-top:var(--hh)}
+  html{scroll-padding-top:calc(var(--hh) + 8px)}
   [hidden]{display:none!important}
 
   /* frosted header */
-  header{position:sticky;top:0;z-index:5;-webkit-transform:translate3d(0,0,0);transform:translate3d(0,0,0);display:flex;align-items:center;justify-content:space-between;
-    margin:0 -20px;padding:calc(12px + env(safe-area-inset-top)) 20px 12px;
+  /* pinned to the screen like the tab bar; iOS scrolls fixed blurred bars smoothly but makes sticky ones quiver */
+  header{position:fixed;top:0;left:0;right:0;z-index:15;display:flex;align-items:center;justify-content:space-between;
+    margin:0;padding:calc(12px + env(safe-area-inset-top)) max(20px, calc((100vw - 520px)/2 + 20px)) 12px;
     background:var(--glass);border-bottom:1px solid var(--glassBd);backdrop-filter:blur(22px) saturate(1.6);-webkit-backdrop-filter:blur(22px) saturate(1.6)}
   header button{background:none;border:0;width:40px;height:40px;font-size:26px;line-height:1;color:var(--ink);cursor:pointer;border-radius:6px}
   header button:active{background:var(--track)}
