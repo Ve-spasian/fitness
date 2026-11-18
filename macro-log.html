@@ -2219,7 +2219,15 @@ load().then(()=>{
   applyTheme();
   render();
   setTimeout(() => document.documentElement.classList.add('ready'), 700);
-  if('serviceWorker' in navigator && location.protocol === 'https:') navigator.serviceWorker.register('sw.js').catch(()=>{});
+  if('serviceWorker' in navigator && location.protocol === 'https:'){
+    // when a newer version takes over an open app, reload once so it shows right away
+    const had = !!navigator.serviceWorker.controller;
+    let reloaded = false;
+    navigator.serviceWorker.addEventListener('controllerchange', () => { if(had && !reloaded){ reloaded = true; location.reload(); } });
+    navigator.serviceWorker.register('sw.js', {updateViaCache:'none'}).then(r => r.update()).catch(()=>{});
+    // the home screen app can sit in the background for days, so check again whenever it comes back
+    document.addEventListener('visibilitychange', () => { if(!document.hidden) navigator.serviceWorker.getRegistration().then(r => r && r.update()).catch(()=>{}); });
+  }
 });
 
 </script>
