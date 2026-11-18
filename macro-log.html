@@ -1501,7 +1501,7 @@ function sequence(upto, minN){
   if(prev) d = addDays(prev, gap(n));
   else if(T.start) d = pd(T.start);
   else d = today;
-  if(d < today) d = today;
+  if(d < today && (prev || !T.start)) d = today;
   if(T.notBefore && pd(T.notBefore) > d) d = pd(T.notBefore);
   out.push({n, date:d, fin:false});
   while(out.length < 800 && (d <= upto || n < minN)){
@@ -1599,8 +1599,10 @@ function renderMonthView(){
   if(nextIdx() === 0){
     const s0 = sequence(today)[0].date;
     startCard = `<section class="card"><label class="f" for="startDate">First workout</label>
-      <input id="startDate" type="date" value="${dkey(s0)}" min="${todayK}">
-      <p class="muted">The first workout starts today, with the next four on the following days and two rest days after that. Pick a later day if you would rather wait.</p></section>`;
+      <input id="startDate" type="date" value="${dkey(s0)}">
+      <button class="tool" id="startApply" type="button" style="margin-top:10px">Use this date</button>
+      <p class="muted" style="margin-top:8px">The first workout is on ${esc(longDate(s0))} right now.</p>
+      <p class="muted">The first workout starts on this date, with the next four on the following days and two rest days after that. Pick yesterday or an earlier day if you already did it, then open it from the calendar to fill it in.</p></section>`;
   }
 
   // week check: five finished workouts inside one Sunday to Saturday week earns the mark
@@ -1703,6 +1705,7 @@ $('tBody').addEventListener('click', ev=>{
   const open = t.closest('.day[data-n], .wrow[data-n]');
   if(open){ openN = +open.dataset.n; renderTrain(); window.scrollTo(0,0); return; }
   if(t.closest('#tBack')){ openN = null; renderTrain(); window.scrollTo(0,0); return; }
+  if(t.closest('#startApply')){ const v = $('startDate').value; if(v){ state.train.start = v; state.train.notBefore = null; save(); renderTrain(); } return; }
   const rec = openN !== null && sessRec(openN); if(!rec) return;
   const chk = t.closest('.chk');
   if(chk){
@@ -1726,7 +1729,7 @@ $('tBody').addEventListener('click', ev=>{
   }
   if(t.closest('#doneBtn')){
     const ni = nextIdx();
-    if(!rec.done && openN === ni){ rec.done = true; rec.doneOn = dkey(startOfToday()); state.train.notBefore = null; }
+    if(!rec.done && openN === ni){ const planned = infoOf(openN).date; rec.doneOn = dkey(planned < startOfToday() ? planned : startOfToday()); rec.done = true; state.train.notBefore = null; }
     else if(rec.done && openN === ni-1){ rec.done = false; rec.doneOn = null; }
     else return;
     save(); renderTrain(); window.scrollTo(0,0);
@@ -1991,15 +1994,50 @@ function normalizeState(){
 
 /* ---------- swipe gestures ---------- */
 (function(){
-  let sx = 0, sy = 0, st = null, ok = false;
+  const reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const views = () => ['viewN','viewT','viewP'].map($);
+  const current = () => views().find(v => !v.hidden);
+  const slide = (el, dir) => { if(!el || !el.animate) return;
+    const d = reduce ? 0 : dir*90;
+    el.animate([{transform:`translateX(${d}px)`,opacity:0},{transform:'none',opacity:1}],{duration:reduce ? 200 : 320,easing:'cubic-bezier(.2,.8,.2,1)'}); };
+  // the page glides off in the swipe direction, then the new day glides in from the other side
+  const goWith = (el, dir, fn) => {
+    if(!el || !el.animate){ fn(); return; }
+    const out = el.animate([{transform:'none',opacity:1},{transform:`translateX(${reduce ? 0 : -dir*70}px)`,opacity:0}],{duration:150,easing:'ease-in',fill:'forwards'});
+    out.onfinish = () => { fn(); out.cancel(); };
+  };
+  // arrows slide the content the same way a swipe does
+  [['prev',-1],['next',1],['tPrev',-1],['tNext',1]].forEach(([id,d])=>$(id).addEventListener('click',()=>slide(current(), d)));
+  ['tabN','tabT','tabP'].forEach((id,i)=>$(id).addEventListener('click',()=>{ const was = window.__tabI; window.__tabI = i; if(was != null && was !== i) slide(current(), i > was ? 1 : -1); }));
+  window.__tabI = 0;
+  const order = ['tabN','tabT','tabP'];
+  let sx = 0, sy = 0, st = null, mode = null, view = null, lock = false;
+  const EDGE = 28;
   document.addEventListener('touchstart', ev=>{
-    const t = ev.touches[0]; sx = t.clientX; sy = t.clientY; st = ev.target;
-    ok = sx > 24 && !st.closest('input, select, textarea, button.chk, #scanModal');
+    const t = ev.touches[0]; sx = t.clientX; sy = t.clientY; st = ev.target; lock = false; view = current();
+    if(st.closest('input, select, textarea, button.chk, #scanModal')){ mode = null; return; }
+    mode = (sx <= EDGE || sx >= window.innerWidth - EDGE) ? 'edge' : 'page';
+  }, {passive:true});
+  document.addEventListener('touchmove', ev=>{
+    if(mode !== 'page' || !view) return;
+    const t = ev.touches[0], dx = t.clientX - sx, dy = t.clientY - sy;
+    if(!lock){ if(Math.abs(dx) > 14 && Math.abs(dx) > 2*Math.abs(dy)) lock = true; else return; }
+    if(st.closest('.entry') || (view.id === 'viewT' && openN !== null) || view.id === 'viewP') return;
+    view.style.transform = `translateX(${dx*.7}px)`; view.style.opacity = String(1 - Math.min(Math.abs(dx),240)/500);
   }, {passive:true});
   document.addEventListener('touchend', ev=>{
-    if(!ok) return; ok = false;
+    if(!mode) return;
+    const m = mode; mode = null;
     const t = ev.changedTouches[0], dx = t.clientX - sx, dy = t.clientY - sy;
+    if(view){ view.style.transform = ''; view.style.opacity = ''; }
     if(Math.abs(dx) < 55 || Math.abs(dx) < 2*Math.abs(dy)) return;
+    if(m === 'edge'){
+      // from the left edge drag right for the previous section, from the right edge drag left for the next
+      const i = order.findIndex(id => $(id).getAttribute('aria-current') === 'page');
+      const j = sx <= EDGE ? i - 1 : i + 1;
+      if(dx > 0 === (sx <= EDGE) && j >= 0 && j < order.length) goWith(view, dx < 0 ? 1 : -1, () => $(order[j]).click());
+      return;
+    }
     const entry = st && st.closest ? st.closest('.entry') : null;
     if(entry){
       document.querySelectorAll('.entry.swiped').forEach(e=>{ if(e !== entry) e.classList.remove('swiped'); });
@@ -2007,8 +2045,9 @@ function normalizeState(){
       return;
     }
     document.querySelectorAll('.entry.swiped').forEach(e=>e.classList.remove('swiped'));
-    if(!$('viewN').hidden) (dx < 0 ? $('next') : $('prev')).click();
-    else if(!$('viewT').hidden && openN === null) (dx < 0 ? $('tNext') : $('tPrev')).click();
+    const dir = dx < 0 ? 1 : -1;
+    if(!$('viewN').hidden) goWith(view, dir, () => (dx < 0 ? $('next') : $('prev')).click());
+    else if(!$('viewT').hidden && openN === null) goWith(view, dir, () => (dx < 0 ? $('tNext') : $('tPrev')).click());
   }, {passive:true});
 })();
 
