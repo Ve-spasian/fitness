@@ -1085,7 +1085,7 @@ $('lBody').addEventListener('input', ev => {
   box.querySelector('.ePro').value = r1(e.pro*q2/a.q);
 });
 $('lBody').addEventListener('keydown', ev => { if(ev.key === 'Enter' && ev.target.closest('.eEdit')){ ev.preventDefault(); saveEdit(ev.target.closest('.eEdit'), state.days[dkey(lDate)] || []); } });
-$('tabL').onclick = () => { if(!$('viewL').hidden){ lDate = new Date(); lEdit = null; } showTab('l'); };
+$('tabL').onclick = () => { lDate = new Date(); lEdit = null; showTab('l'); };
 
 // custom foods: pick an icon, or leave it on automatic
 let fIcon = null;
@@ -7632,7 +7632,6 @@ function normalizeState(){
   function swipeTarget(dir){
     const v = current(); if(!v) return null;
     if(v.id === 'viewN' && nMode === 'day') return () => (dir < 0 ? $('next') : $('prev')).click();
-    if(v.id === 'viewL') return () => (dir < 0 ? $('lNext') : $('lPrev')).click();
     if(v.id === 'viewT' && openN !== null){
       const n = openN - dir; if(n < 0 || n > nextIdx() + 30) return null;
       return () => { openN = n; renderTrain(); window.scrollTo(0,0); };
