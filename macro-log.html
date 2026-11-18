@@ -2126,7 +2126,7 @@ function normalizeState(){
       const anims = els.map(e => e.animate([{transform:`translate3d(${x0}px,0,0)`,opacity:op(x0)},{transform:`translate3d(${x1}px,0,0)`,opacity:0}], {duration:dur, easing:'cubic-bezier(.4,0,1,1)', fill:'forwards'}));
       setX(els, 0);
       await Promise.all(anims.map(a => done(a, dur)));
-      fn(); anims.forEach(a => a.cancel());
+      fn(); anims.forEach(a => a.cancel()); prep(els, false);
       await slideIn(current(), -dir);
     } else { setX(els, 0); fn(); await slideIn(current(), -dir); }
   }
@@ -2140,7 +2140,21 @@ function normalizeState(){
   // arrows and tab taps slide the content the same way a swipe does
   [['prev',-1],['next',1],['tPrev',-1],['tNext',1]].forEach(([id,d])=>$(id).addEventListener('click',ev=>{ if(!busy && ev.isTrusted) slideIn(current(), d); }));
   const order = ['tabN','tabT','tabP'];
-  order.forEach((id,i)=>$(id).addEventListener('click',()=>{ const was = window.__tabI; window.__tabI = i; if(was != null && was !== i) slideIn(current(), i > was ? 1 : -1); }));
+  order.forEach((id,i)=>$(id).addEventListener('click',ev=>{ const was = window.__tabI; window.__tabI = i; if(ev.isTrusted && was != null && was !== i) slideIn(current(), i > was ? 1 : -1); }));
+
+  // where a swipe goes: an open day moves to the next day, an open workout to the next workout,
+  // and a calendar or progress moves to the next section. dir -1 means the finger moved left.
+  function swipeTarget(dir){
+    const v = current(); if(!v) return null;
+    if(v.id === 'viewN' && nMode === 'day') return () => (dir < 0 ? $('next') : $('prev')).click();
+    if(v.id === 'viewT' && openN !== null){
+      const n = openN - dir; if(n < 0 || n > nextIdx() + 30) return null;
+      return () => { openN = n; renderTrain(); window.scrollTo(0,0); };
+    }
+    const i = order.findIndex(id => $(id).getAttribute('aria-current') === 'page'), j = i - dir;
+    if(i < 0 || j < 0 || j >= order.length) return null;
+    return () => $(order[j]).click();
+  }
   window.__tabI = 0;
 
   // a subsection that an edge swipe backs out of; add more here as they appear
@@ -2164,7 +2178,8 @@ function normalizeState(){
     dx = t.clientX - sx;
     if(mode === 'backL') dx = Math.max(0, dx);
     else if(mode === 'backR') dx = Math.min(0, dx);
-    else if(st.closest('.entry') || (view.id === 'viewT' && openN !== null) || view.id === 'viewP') return;
+    else if(st.closest('.entry')) return;
+    else if(!swipeTarget(dx < 0 ? -1 : 1)) dx *= .25;   // nothing that way, so it only gives a little
     if(!els.length){ els = parts(view); prep(els, true); }
     if(!raf) raf = requestAnimationFrame(paint);
   }, {passive:true});
@@ -2192,9 +2207,8 @@ function normalizeState(){
     if(lock) document.querySelectorAll('.entry.swiped').forEach(e=>e.classList.remove('swiped'));
     if(!commit || !moved){ fin(); return; }
     const dir = x0 < 0 ? -1 : 1;
-    if(view.id === 'viewN') leave(view, dir, x0, () => (dir < 0 ? $('next') : $('prev')).click());
-    else if(view.id === 'viewT' && openN === null) leave(view, dir, x0, () => (dir < 0 ? $('tNext') : $('tPrev')).click());
-    else fin();
+    const go = swipeTarget(dir);
+    if(go) leave(view, dir, x0, go); else fin();
   };
   document.addEventListener('touchend', end, {passive:true});
   document.addEventListener('touchcancel', end, {passive:true});
