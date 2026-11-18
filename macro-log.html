@@ -2,7 +2,7 @@
 <html lang="en" data-theme="paper" data-skin="sport">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <title>Logger</title>
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
@@ -23,9 +23,10 @@
     --ground:#f4f5f7; --surface:#ffffff; --field:#ffffff; --glass:rgba(244,245,247,.86);
     --ink:#0e1116; --ink-2:#636b78; --ink-3:#9aa1ab;
     --rule:rgba(14,17,22,.09); --rule-strong:rgba(14,17,22,.2); --track:rgba(14,17,22,.08);
-    --action:#2a72ff; --on-action:#ffffff;
-    --earned:#10a958; --on-earned:#ffffff; --earned-soft:#d9f5e5;
-    --caution:#e8a400; --over:#e5484d;
+    --action:#1f6fff; --on-action:#ffffff;
+    --earned:#15c466; --earned-text:#0b8a45; --on-earned:#05301a; --earned-soft:#c9f3da;
+    --caution:#f2b600; --over:#ef3e44;
+    --fade:linear-gradient(90deg,#c9f3da 0%,#6fdc9c 45%,#15c466 100%);
     --sky1:rgba(120,170,255,.22); --sky2:rgba(255,200,150,.14);
     --sans:-apple-system,BlinkMacSystemFont,"SF Pro Text","SF Pro Display","Helvetica Neue",Arial,sans-serif;
     --s1:4px; --s2:8px; --s3:16px; --s4:24px; --s5:32px; --s6:48px;
@@ -42,9 +43,10 @@
       --ground:#0b0d10; --surface:#12151a; --field:#15181d; --glass:rgba(11,13,16,.84);
       --ink:#f2f4f7; --ink-2:#8b94a1; --ink-3:#5f6772;
       --rule:rgba(255,255,255,.08); --rule-strong:rgba(255,255,255,.18); --track:rgba(255,255,255,.1);
-      --action:#4a90ff; --on-action:#ffffff;
-      --earned:#1fd673; --on-earned:#05301a; --earned-soft:rgba(31,214,115,.14);
-      --caution:#ffcf1f; --over:#ff5d62;
+      --action:#4c95ff; --on-action:#ffffff;
+      --earned:#1fdc76; --earned-text:#1fdc76; --on-earned:#05301a; --earned-soft:rgba(31,220,118,.14);
+      --caution:#ffd21f; --over:#ff5a60;
+      --fade:linear-gradient(90deg,#eafbf1 0%,#8de9b2 45%,#1fdc76 100%);
       color-scheme:dark;
     }
   }
@@ -52,7 +54,7 @@
   /* ---------- base ---------- */
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
   [hidden]{display:none!important}
-  html{-webkit-text-size-adjust:100%;scroll-padding-top:calc(var(--hh) + var(--s2))}
+  html{-webkit-text-size-adjust:100%;touch-action:manipulation;scroll-padding-top:calc(var(--hh) + var(--s2))}
   html,body{overflow-x:clip}
   body{margin:0;background:var(--ground);color:var(--ink);font:400 15px/1.45 var(--sans);letter-spacing:-.005em;
     -webkit-font-smoothing:antialiased;font-feature-settings:"kern","tnum";text-rendering:optimizeLegibility}
@@ -109,6 +111,7 @@
   .m .mVal span{font-size:13px}
   .track{position:relative;height:6px;border-radius:3px;background:var(--track);overflow:hidden}
   .fill{position:absolute;left:0;top:0;bottom:0;border-radius:3px;transition:width .5s var(--ease)}
+  .macros .fill{background-size:var(--span,100%) 100%!important;background-repeat:no-repeat!important}
   .fill.over{background:var(--over)!important}
 
   /* ---------- controls ---------- */
@@ -127,7 +130,7 @@
     border:1px solid var(--rule-strong);border-radius:var(--r-ctl);font-size:14px;font-weight:600;cursor:pointer}
   .tool svg{flex:none;color:var(--ink-2)}
   .ghostBtn{flex:none;height:40px;padding:0 var(--s3);border:1px solid var(--rule-strong);background:none;border-radius:var(--r-ctl);font-weight:600;color:var(--action);cursor:pointer}
-  .ghostBtn.doneB{color:var(--earned);border-color:transparent}
+  .ghostBtn.doneB{color:var(--earned-text);border-color:transparent}
   .lnk,.moreBtn{background:none;border:0;padding:var(--s2) 0;font-size:14px;font-weight:600;color:var(--action);cursor:pointer}
   .lnk.warn{color:var(--over)}
   .x{background:none;border:0;color:var(--ink-3);font-size:22px;line-height:1;cursor:pointer;padding:6px 10px;border-radius:var(--r-ctl)}
@@ -189,10 +192,19 @@
   .eAmt{display:flex;align-items:center;gap:6px}
   .eAmt input{min-width:0}
   .eAmt span{color:var(--ink-2);font-size:14px;white-space:nowrap}
+  .bodyHead{display:flex;align-items:center;justify-content:space-between;gap:var(--s3);margin-bottom:var(--s3)}
+  .bodyHead h2{margin:0}
+  .bodyState{display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:600;color:var(--ink-2)}
+  #bodyCard.locked .bodyState{color:var(--earned-text)}
+  #bodyCard.locked input{border-color:color-mix(in srgb,var(--earned) 55%,transparent)}
+  #bodyCard{transition:border-color .4s,box-shadow .4s}
+  #bodyCard.justLocked{border-color:var(--earned);animation:lockIn .9s var(--ease)}
+  #bodyCard.justLocked .bodyState svg{animation:pop .55s cubic-bezier(.2,1.5,.4,1) both}
+  .two button.lockedBtn{background:var(--earned);color:var(--on-earned)}
+  @keyframes lockIn{0%{box-shadow:0 0 0 0 color-mix(in srgb,var(--earned) 45%,transparent)}100%{box-shadow:0 0 0 14px transparent}}
   .hist{display:flex;justify-content:space-between;font-size:14px;padding:var(--s2) 0;border-top:1px solid var(--rule)}
   #bodyHist{margin-top:var(--s3)}
   #bodyHist .hist:first-child{border-top:0}
-  html.home #bodyHist{display:none}
   html.home #nBack,html.home #targetsCard{display:none}
 
   /* batches */
@@ -214,6 +226,24 @@
   #batchBuild{border-top:1px solid var(--rule);margin-top:var(--s3);padding-top:var(--s1)}
   #batchBuild.solo{border-top:0;margin-top:0;padding-top:0}
   #batchBuild label.f{margin:var(--s3) 0 6px}
+  /* batch ingredients: one compact row each */
+  .ing{display:grid;grid-template-columns:1fr auto;gap:2px var(--s2);padding:12px 0;border-top:1px solid var(--rule)}
+  .ing:first-child{border-top:0}
+  .ing .fsel{grid-column:1/-1;height:auto;padding:0;border:0;background:none;font-size:16px;font-weight:700;color:var(--ink);-webkit-appearance:none;appearance:none;text-overflow:ellipsis}
+  .ing .fsel:focus{box-shadow:none;color:var(--action)}
+  .ing .pvrow{grid-column:1/-1;display:grid;grid-template-columns:72px 96px 1fr auto;gap:var(--s2);align-items:center}
+  .ing .qty,.ing .usel{height:38px;font-size:15px;padding:0 10px}
+  .ing .ingInfo{font-size:13px;color:var(--ink-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .ing .ingInfo b{color:var(--ink);font-weight:700}
+  .ing.miss{grid-template-columns:1fr auto;align-items:center;font-size:14px;color:var(--ink-2)}
+  .ingAdd{display:flex;gap:var(--s2);margin-top:var(--s2)}
+  .ingAdd input{flex:1;min-width:0}
+  .ingAdd .tool{height:48px}
+  #bSuggest{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;margin:var(--s2) calc(-1 * var(--s3)) 0;padding:0 var(--s3)}
+  #bSuggest::-webkit-scrollbar{display:none}
+  #bSuggest .chip{flex:none;max-width:260px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .bTotal{margin-top:var(--s3);font-size:14px;color:var(--ink-2)} .bTotal b{color:var(--ink)}
+
 
   /* ---------- ledger home ---------- */
   #nCal{margin-top:var(--s1)}
@@ -287,7 +317,7 @@
   .wrows .wrow:first-child{border-top:0;padding-top:0}
   .wrow b{display:block;font-size:16px;font-weight:700;letter-spacing:-.01em}
   .wrow span.s{font-size:13px;color:var(--ink-2)}
-  .tag.fin{color:var(--earned)}
+  .tag.fin{color:var(--earned-text)}
   .tag.miss{color:var(--over)}
   .tag.now{color:var(--on-action);background:var(--action);padding:4px 8px;border-radius:999px}
 
@@ -314,7 +344,7 @@
   .setrow.ok input{border-color:color-mix(in srgb,var(--earned) 50%,transparent)}
   .exFoot{display:flex;gap:var(--s2);margin-top:var(--s1)}
   .exFoot .tool{flex:none}
-  .exFoot select{flex:1;min-width:0;height:40px;font-size:14px}
+  .exFoot select{flex:1;min-width:0;height:40px;font-size:16px}
   details.more{margin-top:var(--s4);border-top:1px solid var(--rule);padding-top:var(--s3)}
   details.more summary{color:var(--ink-2)}
   details.more .tool,details.more select{margin-top:var(--s3)}
@@ -447,8 +477,9 @@
       <label class="f" for="bName">Name</label>
       <input id="bName" placeholder="Tortilla soup" autocomplete="off">
       <label class="f" for="bq">What went in</label>
-      <textarea id="bq" rows="3" placeholder="Everything in the pot, like “2 lb chicken thigh, 1 can black beans, 4 cups broth”" aria-label="Batch ingredients"></textarea>
       <div id="bPreview"></div>
+      <form class="ingAdd" id="bAddForm" autocomplete="off"><input id="bq" placeholder="Add an ingredient, like 2 lb chicken thigh" aria-label="Add an ingredient" enterkeyhint="done"><button type="submit" class="tool">Add</button></form>
+      <div class="chips" id="bSuggest" aria-label="Ingredient suggestions" hidden></div>
       <label class="f" for="bWt">Cooked weight of the whole batch, optional</label>
       <div class="bw"><input id="bWt" type="number" inputmode="decimal" min="0" step="any"><select id="bWtU" aria-label="Unit"><option value="lb">lb</option><option value="oz">oz</option><option value="g">g</option></select></div>
       <p class="muted">Weigh the pot full, then empty, and subtract. With a weight you can log a portion by weighing your bowl, not just by halves and quarters.</p>
@@ -463,16 +494,6 @@
   </section>
 
   <div id="nCal" hidden></div>
-
-  <section class="card" id="bodyCard">
-    <h2>Weight and waist</h2>
-    <div class="two">
-      <div><label class="f" for="bW">Weight, lb</label><input id="bW" type="number" inputmode="decimal" step="0.1"></div>
-      <div><label class="f" for="bWa">Waist, in</label><input id="bWa" type="number" inputmode="decimal" step="0.25"></div>
-      <button id="saveBody">Save</button>
-    </div>
-    <div id="bodyHist"></div>
-  </section>
 
   <section class="card" id="targetsCard">
     <details>
@@ -499,6 +520,15 @@
 
   <div id="viewP" hidden>
     <header style="justify-content:center"><div class="date"><b>Progress</b><span id="pSub"></span></div></header>
+    <section class="card obj" id="bodyCard">
+      <div class="bodyHead"><h2>Today’s weigh-in</h2><span class="bodyState" id="bodyState"></span></div>
+      <div class="two">
+        <div><label class="f" for="bW">Weight, lb</label><input id="bW" type="number" inputmode="decimal" step="0.1"></div>
+        <div><label class="f" for="bWa">Waist, in</label><input id="bWa" type="number" inputmode="decimal" step="0.25"></div>
+        <button id="saveBody" type="button">Save</button>
+      </div>
+      <div id="bodyHist"></div>
+    </section>
     <div id="pBody"></div>
   </div>
 </div>
@@ -737,13 +767,12 @@ function render(){
   bar.classList.toggle('over', !!(g.cal && t.cal > g.cal));
 
   const keepBar = $('macros').querySelector('.fill'), oldW = keepBar ? keepBar.style.width : '0%';
-  $('macros').innerHTML = [['Protein','pro','var(--acc)']].map(([n,k,c])=>{
+  $('macros').innerHTML = [['Protein','pro','var(--fade)']].map(([n,k,c])=>{
     const pct = g[k] ? Math.min(100, t[k]/g[k]*100) : 0;
-    if(g[k] && t[k] >= g[k]) c = 'var(--good,#1f9d55)';
     const over = k !== 'pro' && g[k] && t[k] > g[k];
     return `<div class="m"><div class="mName">${n}</div>
       <div class="mVal num"><b>${Math.round(t[k])}</b> <span>of ${g[k]} g</span></div>
-      <div class="track"><div class="fill ${over?'over':''}" data-w="${pct}%" style="width:${oldW};background:${c}"></div></div></div>`;
+      <div class="track"><div class="fill ${over?'over':''}" data-w="${pct}%" style="width:${oldW};background:${c};--span:${pct ? (10000/pct).toFixed(1) : 100}%"></div></div></div>`;
   }).join('');
   // let the bar grow from where it was
   const nb = $('macros').querySelector('.fill'); if(nb){ void nb.offsetWidth; nb.style.width = nb.dataset.w; }
@@ -774,14 +803,7 @@ function render(){
   $('recent').innerHTML = recent.map((e,i)=>`<button class="chip" data-r="${i}">${esc(e.name)}</button>`).join('');
   window._recent = recent;
 
-  const bd = Object.keys(state.body).sort().reverse().slice(0,7);
-  $('bodyHist').innerHTML = bd.map(d=>{
-    const b = state.body[d];
-    return `<div class="hist"><span>${d}</span><span class="num">${b.w ? b.w+' lb' : 'no weight'}, ${b.wa ? b.wa+' in waist' : 'no waist'}</span></div>`;
-  }).join('');
-  const b = state.body[dkey(current)];
-  $('bW').value = b && b.w ? b.w : '';
-  $('bWa').value = b && b.wa ? b.wa : '';
+  renderBody();
 
   $('tCal').value = g.cal; $('tPro').value = g.pro; $('tCarb').value = g.carb; $('tFat').value = g.fat;
   renderBatches();
@@ -896,12 +918,37 @@ $('nCal').addEventListener('click', ev => {
 $('list').addEventListener('click', ev => { if(ev.target.closest('#lgMore')){ lgShowAll = !lgShowAll; render(); } }, true);
 document.addEventListener('visibilitychange', () => { if(!document.hidden && nMode === 'cal' && !$('viewN').hidden){ lgCascade = true; render(); } });
 
+/* ---------- today's weigh-in (on progress) ---------- */
+const LOCK = '<svg viewBox="0 0 18 18" width="18" height="18" aria-hidden="true"><circle cx="9" cy="9" r="9" fill="var(--earned)"/><path d="M5.2 9.4l2.5 2.5 5-5.4" fill="none" stroke="var(--on-earned)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+function renderBody(){
+  const k = dkey(new Date()), b = state.body[k];
+  const logged = !!(b && (b.w || b.wa));
+  if(document.activeElement !== $('bW')) $('bW').value = b && b.w ? b.w : '';
+  if(document.activeElement !== $('bWa')) $('bWa').value = b && b.wa ? b.wa : '';
+  $('bodyCard').classList.toggle('locked', logged);
+  $('bodyState').innerHTML = logged ? LOCK + '<span>Logged</span>' : '<span>Not logged yet</span>';
+  $('saveBody').textContent = logged ? 'Update' : 'Save';
+  const bd = Object.keys(state.body).sort().reverse().filter(d => d !== k).slice(0,5);
+  $('bodyHist').innerHTML = bd.map(d => {
+    const x = state.body[d], [y,m,dd] = d.split('-').map(Number);
+    const lbl = new Date(y, m-1, dd).toLocaleDateString(undefined,{weekday:'short',month:'short',day:'numeric'});
+    return `<div class="hist"><span>${lbl}</span><span class="num">${x.w ? x.w + ' lb' : '—'}${x.wa ? ', ' + x.wa + ' in' : ''}</span></div>`;
+  }).join('');
+}
 $('saveBody').onclick = () => {
   const w = parseFloat($('bW').value), wa = parseFloat($('bWa').value);
-  if(isNaN(w) && isNaN(wa)) return;
-  state.body[dkey(current)] = {w: isNaN(w) ? null : w, wa: isNaN(wa) ? null : wa};
-  save(); render();
+  if(isNaN(w) && isNaN(wa)){ $('bW').focus(); return; }
+  state.body[dkey(new Date())] = {w: isNaN(w) ? null : w, wa: isNaN(wa) ? null : wa};
+  save();
+  document.activeElement && document.activeElement.blur && document.activeElement.blur();
+  renderBody(); renderProgress();
+  // the locked-in moment: the button confirms, the card settles green, the check pops in
+  const c = $('bodyCard'), btn = $('saveBody');
+  c.classList.remove('justLocked'); void c.offsetWidth; c.classList.add('justLocked');
+  btn.innerHTML = '\u2713 Locked in'; btn.classList.add('lockedBtn');
+  clearTimeout(btn._t); btn._t = setTimeout(() => { btn.classList.remove('lockedBtn'); renderBody(); }, 1800);
 };
+['bW','bWa'].forEach(id => $(id).addEventListener('keydown', ev => { if(ev.key === 'Enter'){ ev.preventDefault(); $('saveBody').click(); } }));
 [['tCal','cal'],['tPro','pro'],['tCarb','carb'],['tFat','fat']].forEach(([id,k])=>{
   $(id).onchange = () => { state.targets[k] = parseFloat($(id).value) || 0; save(); render(); };
 });
@@ -916,12 +963,12 @@ function F(names,cal,pro,carb,fat,units){
     tokens:all, nameTokens:new Set(tok(ns[0])), phrases:ns.map(n=>tok(n).join(' '))});
 }
 // legumes
-F('Pinto beans, cooked|pinto beans|pintos',143,9,26.2,0.65,{cup:171});
-F('Black beans, cooked|black beans',132,8.9,23.7,0.5,{cup:172});
-F('Kidney beans, cooked|kidney beans',127,8.7,22.8,0.5,{cup:177});
-F('Chickpeas, cooked|chickpeas|garbanzo beans',164,8.9,27.4,2.6,{cup:164});
-F('Lentils, cooked|lentils',116,9,20,0.4,{cup:198});
-F('Refried beans|refried beans canned',94,5.4,15,1.5,{cup:252});
+F('Pinto beans, cooked|pinto beans|pintos',143,9,26.2,0.65,{cup:171,can:255});
+F('Black beans, cooked|black beans',132,8.9,23.7,0.5,{cup:172,can:255});
+F('Kidney beans, cooked|kidney beans',127,8.7,22.8,0.5,{cup:177,can:255});
+F('Chickpeas, cooked|chickpeas|garbanzo beans',164,8.9,27.4,2.6,{cup:164,can:240});
+F('Lentils, cooked|lentils',116,9,20,0.4,{cup:198,can:260});
+F('Refried beans|refried beans canned',94,5.4,15,1.5,{cup:252,can:454});
 F('Edamame|edamame shelled',121,12,9,5.2,{cup:155});
 F('Pinto beans, dry',347,21,63,1.2,{cup:193});
 F('Black beans, dry',341,21.6,62.4,1.4,{cup:194});
@@ -1005,7 +1052,7 @@ F('Cucumber',15,0.7,3.6,0.1,{each:300,cup:104});
 F('Romaine lettuce|lettuce|salad greens',17,1.2,3.3,0.3,{cup:47});
 F('Avocado',160,2,8.5,14.7,{each:136});
 F('Mushrooms|mushroom',22,3.1,3.3,0.3,{cup:70});
-F('Corn, cooked|corn',96,3.4,21,1.5,{cup:164});
+F('Corn, cooked|corn',96,3.4,21,1.5,{cup:164,can:250});
 F('Peas, cooked|peas',81,5.4,14,0.4,{cup:160});
 F('Green beans, cooked|green beans',31,1.8,7,0.2,{cup:125});
 F('Zucchini',17,1.2,3.1,0.3,{each:196,cup:124});
@@ -1119,7 +1166,7 @@ F('Milk, 1%|1% milk|one percent milk',42,3.4,5,1,{cup:244});
 F('Chocolate milk, 2%|chocolate milk',83,3.2,10.6,2.1,{cup:250});
 F('Half and half',131,3,4.3,11.5,{tbsp:15,cup:242});
 F('Soy milk, unsweetened|soy milk',33,2.9,1.7,1.8,{cup:243});
-F('Coconut milk, canned|coconut milk',197,2,2.8,21,{cup:226,tbsp:15});
+F('Coconut milk, canned|coconut milk',197,2,2.8,21,{cup:226,tbsp:15,can:400});
 F('Whey isolate|isolate',370,90,2,1,{scoop:30});
 F('Casein protein|casein',360,75,10,2,{scoop:33});
 F('Plant protein powder|pea protein',380,70,12,7,{scoop:33});
@@ -1131,8 +1178,8 @@ F('Impossible burger patty|impossible burger',212,17,8,12.4,{each:113});
 F('Falafel',333,13,32,18,{each:17});
 F('Nutritional yeast',375,48,36,6,{tbsp:5});
 // more legumes
-F('White beans, cooked|white beans|cannellini beans',139,9.7,25,0.35,{cup:179});
-F('Navy beans, cooked|navy beans',140,8.2,26,0.6,{cup:182});
+F('White beans, cooked|white beans|cannellini beans',139,9.7,25,0.35,{cup:179,can:255});
+F('Navy beans, cooked|navy beans',140,8.2,26,0.6,{cup:182,can:255});
 F('Lima beans, cooked|lima beans',115,7.8,21,0.4,{cup:188});
 F('Split peas, cooked|split peas',118,8.3,21,0.4,{cup:196});
 F('Black-eyed peas, cooked|black eyed peas',116,7.7,21,0.5,{cup:171});
@@ -1176,7 +1223,7 @@ F('Celery',16,0.7,3,0.2,{each:40,cup:101});
 F('Garlic',149,6.4,33,0.5,{each:3,tbsp:9});
 F('Green onion|scallion',32,1.8,7.3,0.2,{each:15});
 F('Butternut squash, cooked|butternut squash',40,1,10,0.1,{cup:205});
-F('Pumpkin, canned|pumpkin',34,1.1,8,0.3,{cup:245});
+F('Pumpkin, canned|pumpkin',34,1.1,8,0.3,{cup:245,can:425});
 F('Beets, cooked|beets',44,1.7,10,0.2,{cup:170});
 F('Tomato sauce',29,1.3,6.6,0.2,{cup:245});
 F('Marinara sauce|marinara|pasta sauce',50,1.5,8,1.5,{cup:250});
@@ -6456,32 +6503,79 @@ function renderBatches(){
       <span><span class="num">${Math.round(b.tot.cal).toLocaleString()}</span> cal, <span class="num">${Math.round(b.tot.pro)}</span> g protein in all, ${leftWords(left)}</span></div><span class="chev">›</span></div>${pick}</div>`;
   }).join('');
 }
+// one compact row per ingredient: the food (tap to swap), then amount, unit and what it adds
 function renderBPreview(){
-  const out = previewHTML(bRows);
-  $('bPreview').innerHTML = out.html;
-  const t = rowsTotal(bRows);
-  $('bSave').textContent = out.n ? `Save batch (${Math.round(t.cal).toLocaleString()} cal, ${Math.round(t.pro)} g protein)` : 'Save batch';
+  $('bPreview').innerHTML = bRows.map((r,i) => {
+    if(!r.f) return `<div class="ing miss pv" data-i="${i}"><span>No match for “${esc(r.name)}”. Scan it or add it as a custom food first.</span><button class="x rm" type="button" aria-label="Remove">×</button></div>`;
+    const U = unitsFor(r.f), res = resolve(r.f, r.qty, r.unit);
+    const uopts = Object.keys(U).map(u => `<option value="${u}" ${u === res.u ? 'selected' : ''}>${u}</option>`).join('');
+    const fopts = r.opts.map((o,j) => `<option value="${j}" ${o === r.f ? 'selected' : ''}>${esc(o.name)}</option>`).join('');
+    return `<div class="ing pv" data-i="${i}"><select class="fsel" aria-label="Food">${fopts}</select>
+      <div class="pvrow"><input class="qty" type="number" inputmode="decimal" step="any" min="0" value="${r.qty}" aria-label="Amount">
+      <select class="usel" aria-label="Unit">${uopts}</select>
+      <span class="ingInfo"><b class="num">${Math.round(res.cal).toLocaleString()}</b> cal · ${Math.round(res.pro)} g</span>
+      <button class="x rm" type="button" aria-label="Remove ${esc(r.f.name)}">×</button></div></div>`;
+  }).join('') + (bRows.length ? '' : '<p class="muted" style="margin:0">Nothing added yet.</p>');
+  const t = rowsTotal(bRows), n = bRows.filter(r => r.f && r.qty).length;
+  $('bSave').textContent = n ? `Save batch (${Math.round(t.cal).toLocaleString()} cal, ${Math.round(t.pro)} g protein)` : 'Save batch';
 }
+// ingredients are added one at a time; a pasted list with commas still splits into several
+function addIngredient(text, food){
+  const items = food ? [text] : text.split(/[,\n;+]+/).map(x => x.trim()).filter(Boolean);
+  items.forEach(raw => {
+    const p = parseItem(raw), opts = p.name ? search(p.name) : [];
+    if(food && !opts.includes(food)) opts.unshift(food);
+    bRows.push({name: p.name || raw, qty: p.qty, unit: p.unit && food && !unitsFor(food)[p.unit] ? null : p.unit, opts, f: food || opts[0] || null});
+  });
+  $('bq').value = ''; bSuggest(); renderBPreview();
+}
+let bSugg = [];
+function bSuggest(){
+  const p = parseItem($('bq').value.trim()), box = $('bSuggest');
+  bSugg = p.name && p.name.replace(/[^a-z]/gi,'').length >= 2 ? search(p.name, 6) : [];
+  box.hidden = !bSugg.length;
+  box.innerHTML = bSugg.map((f,i) => `<button type="button" class="chip" data-s="${i}">${esc(f.name)}</button>`).join('');
+}
+$('bq').addEventListener('input', bSuggest);
+$('bAddForm').addEventListener('submit', ev => { ev.preventDefault(); const v = $('bq').value.trim(); if(v) addIngredient(v); $('bq').focus(); });
+$('bSuggest').addEventListener('click', ev => {
+  const b = ev.target.closest('[data-s]'); if(!b) return;
+  const p = parseItem($('bq').value.trim()), f = bSugg[+b.dataset.s];
+  addIngredient(`${Math.round(p.qty*100)/100}${p.unit ? ' ' + p.unit : ''} ${f.name.replace(/[,;+]/g,'')}`, f);
+  $('bq').focus();
+});
+const itemText = r => `${Math.round(r.qty*100)/100}${r.unit ? ' ' + r.unit : ''} ${(r.f ? r.f.name : r.name).replace(/[,;+]/g,'')}`;
 function openBuilder(b){
   bEdit = b ? b.id : null;
   $('bName').value = b ? b.name : '';
-  $('bq').value = b ? b.text : '';
+  $('bq').value = '';
   $('bWt').value = b && b.wt ? r1(b.wt / G[b.wtU || 'g']) : '';
   $('bWtU').value = b && b.wtU ? b.wtU : 'lb';
-  bRows = parseRows($('bq').value); renderBPreview();
+  // saved batches keep their exact foods; older ones are re-read from their text
+  bRows = [];
+  if(b && b.items) b.items.forEach(it => {
+    const all = customFoods().concat(DB), f = all.find(x => x.name === it.n) || null, opts = search(it.n);
+    if(f && !opts.includes(f)) opts.unshift(f);
+    bRows.push({name: it.n, qty: it.q, unit: it.u, opts, f: f || opts[0] || null});
+  });
+  else if(b && b.text) bRows = parseRows(b.text);
+  bSuggest(); renderBPreview();
   $('batchBuild').hidden = false; renderBatches();
   $('batchCard').scrollIntoView({behavior:'smooth', block:'start'});
 }
 function closeBuilder(){ $('batchBuild').hidden = true; bEdit = null; bRows = []; renderBatches(); }
 $('batchBtn').onclick = () => openBuilder(null);
 $('bCancel').onclick = closeBuilder;
-$('bq').addEventListener('input', () => { bRows = parseRows($('bq').value); renderBPreview(); });
 wirePreview($('bPreview'), () => bRows, renderBPreview);
 $('bSave').onclick = () => {
   const t = rowsTotal(bRows);
-  if(!t.cal && !t.pro){ $('bq').focus(); return; }
+  if($('bq').value.trim()){ addIngredient($('bq').value.trim()); return $('bSave').click(); }
+  const t2 = rowsTotal(bRows);
+  if(!t2.cal && !t2.pro){ $('bq').focus(); return; }
   const wv = parseFloat($('bWt').value), wtU = $('bWtU').value;
-  const rec = {name: $('bName').value.trim() || 'Batch', text: $('bq').value.trim(),
+  const ok = bRows.filter(r => r.f && r.qty);
+  const rec = {name: $('bName').value.trim() || 'Batch', text: ok.map(itemText).join(', '),
+    items: ok.map(r => ({n: r.f.name, q: r.qty, u: r.unit})),
     tot: {cal:Math.round(t.cal), pro:r1(t.pro), carb:r1(t.carb), fat:r1(t.fat)},
     wt: wv > 0 ? wv * G[wtU] : null, wtU};
   const old = bEdit && recipes().find(b => b.id === bEdit);
@@ -6936,8 +7030,6 @@ function renderMonthView(){
     </section>
     <p class="legend">U marks an upper body day and L a lower body day; a solid blue line under it means finished. If you skip a day, that workout and every one after it slides back a day on its own. Tap any of them to open it, log your sets, and check it off when you finish.</p>
     ${startCard}
-    <section class="card"><h2>Weeks</h2><div class="wks">${wkRows}</div>
-      <p class="muted">${fullWeeks ? fullWeeks + (fullWeeks === 1 ? ' week' : ' weeks') + ' complete this month. ' : ''}A week is complete when all five workouts are finished between Sunday and Saturday.</p></section>
     <section class="card"><h2>This week</h2><div class="wrows">${rows || '<p class="empty">Nothing is scheduled this week.</p>'}</div>
       <p class="muted">${freeText}</p></section>`;
 }
@@ -7092,7 +7184,7 @@ function showTab(t){
   $('tabP').setAttribute('aria-current', t === 'p' ? 'page' : 'false');
   if(t === 'n') render();
   if(t === 't') renderTrain();
-  if(t === 'p') renderProgress();
+  if(t === 'p'){ renderBody(); renderProgress(); }
   window.scrollTo(0,0);
 }
 $('tabN').onclick = () => { if(!$('viewN').hidden && nMode === 'day') closeNDay(); else showTab('n'); };
@@ -7425,6 +7517,8 @@ function normalizeState(){
   document.addEventListener('touchcancel', end, {passive:true});
 })();
 
+// it's an app, not a page: no pinch zoom (iOS ignores user-scalable in some cases)
+['gesturestart','gesturechange'].forEach(t => document.addEventListener(t, e => e.preventDefault(), {passive:false}));
 // the launch mark shows once per launch, then gives way to today
 (function(){
   const sp = document.getElementById('splash'); if(!sp) return;
