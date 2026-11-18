@@ -159,6 +159,9 @@
   #recentPanel .chips{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;margin:0 calc(-1 * var(--s3));padding:0 var(--s3)}
   #recentPanel .chips::-webkit-scrollbar{display:none}
   #recentPanel .chip{flex:none}
+  #suggest{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;margin:var(--s2) calc(-1 * var(--s3)) 0;padding:0 var(--s3)}
+  #suggest::-webkit-scrollbar{display:none}
+  #suggest .chip{flex:none;max-width:260px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   #preview{margin-top:var(--s2)}
   .pv{border-top:1px solid var(--rule);padding:var(--s3) 0}
   .pv .fsel{width:100%;margin-bottom:var(--s2);font-weight:600}
@@ -254,7 +257,6 @@
   .day .hit svg{width:11px;height:11px}
   .day .yld{width:19px;height:17px;display:block}
   /* the streak line starts at the exact centre of a check and runs to the next one */
-  .day.chainR .mk::before{content:"";position:absolute;top:50%;left:50%;width:100cqw;height:2px;margin-top:-1px;border-radius:1px;background:var(--earned);opacity:.5;z-index:-1}
   .day .dl{font-size:13px;font-weight:700;line-height:18px;height:18px;color:var(--ink-3)}
   .day.done .dl{color:var(--action)}
   .day.missed .dl{text-decoration:line-through}
@@ -264,7 +266,6 @@
   .tk.none{visibility:hidden}
   .legend{margin:var(--s3) 0 0}
   .cascade .mk>*{animation:mkIn .45s cubic-bezier(.2,1.3,.4,1) both;animation-delay:calc(var(--i) * 14ms)}
-  .cascade .chainR .mk::before{animation:chainIn .5s ease-out both;animation-delay:calc(var(--i) * 14ms + 120ms);transform-origin:left}
   .cascade .yearG i{animation:mkIn .4s ease-out both;animation-delay:calc(var(--i) * 2ms)}
   .cascade .spark .ln{animation:draw 1s .15s cubic-bezier(.4,0,.2,1) both}
   @keyframes mkIn{from{opacity:0;transform:scale(.4)}to{opacity:1;transform:none}}
@@ -408,6 +409,7 @@
   <section class="card">
     <h2>Log food</h2>
     <textarea id="q" rows="2" placeholder="Type what you ate, like “pinto beans cooked 1 lb, 1 tbsp butter, 2 eggs”" aria-label="Foods to log"></textarea>
+    <div class="chips" id="suggest" aria-label="Suggestions" hidden></div>
     <div id="preview"></div>
     <button class="primary" id="addAll" hidden></button>
     <div id="recentPanel" hidden><div class="chips" id="recent" aria-label="Recent foods"></div></div>
@@ -581,7 +583,7 @@ function dayHit(list){
 const dayOver = list => !!(list && list.length && totals(list).cal > (state.targets.cal || 0) + 100);
 let lgYear = false, lgCascade = true, lgShowAll = false, earnedToday = null;
 const LG_CHECK = '<span class="hit"><svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 6.3l2.3 2.3 4.7-5"/></svg></span>';
-const LG_YIELD = '<svg class="yld" viewBox="0 0 20 18" aria-hidden="true"><path d="M2.6 2.9h14.8c.8 0 1.3.9.8 1.6l-7.4 11c-.4.6-1.2.6-1.6 0L1.8 4.5c-.5-.7 0-1.6.8-1.6z" fill="none" stroke="var(--warn,#e5a800)" stroke-width="1.7" stroke-linejoin="round"/></svg>';
+const LG_YIELD = '<svg class="yld" viewBox="0 0 20 18" aria-hidden="true"><path d="M2.6 2.9h14.8c.8 0 1.3.9.8 1.6l-7.4 11c-.4.6-1.2.6-1.6 0L1.8 4.5c-.5-.7 0-1.6.8-1.6z" fill="var(--caution)" stroke="var(--caution)" stroke-width="1.2" stroke-linejoin="round"/><path d="M10 5.6v3.9" stroke="#1d1600" stroke-width="2" stroke-linecap="round"/><circle cx="10" cy="12.1" r="1.05" fill="#1d1600"/></svg>';
 const todayD = () => { const n = new Date(); return new Date(n.getFullYear(), n.getMonth(), n.getDate()); };
 // food state for a day: 'g' earned, 'w' missed, '' nothing to say yet
 function dayState(d){
@@ -625,8 +627,7 @@ function renderNCal(){
   for(let d = gridStart; d <= gridEnd; d = addDays(d,1), idx++){
     const k = dkey(d), st = states[k], inM = d.getMonth() === first.getMonth(), w = wk[k];
     if(inM && st){ logged++; if(st === 'g') hits++; }
-    const right = addDays(d,1), chain = st === 'g' && d.getDay() !== 6 && states[dkey(right)] === 'g';
-    const cls = ['day']; if(!inM) cls.push('out'); if(k === todayK) cls.push('today'); if(d > today) cls.push('future'); if(chain) cls.push('chainR');
+    const cls = ['day']; if(!inM) cls.push('out'); if(k === todayK) cls.push('today'); if(d > today) cls.push('future');
     const tk = w ? (w.fin ? 'done' : 'plan') : 'none';
     const lbl = d.toLocaleDateString(undefined,{weekday:'long',month:'long',day:'numeric'}) + (st === 'g' ? ', food on target' : st === 'w' ? ', food missed' : '') + (w ? (w.fin ? ', workout done' : ', workout planned') : '');
     cells += `<button class="${cls.join(' ')}" data-d="${k}" style="--i:${idx}" aria-label="${esc(lbl)}"><span class="dn">${d.getDate()}</span><span class="mk">${st === 'g' ? LG_CHECK : st === 'w' ? LG_YIELD : ''}</span><i class="tk ${tk}"></i></button>`;
@@ -6246,21 +6247,41 @@ function customFoods(){
 }
 const unitsFor = f => (f.custom && !f.grams) ? f.units : Object.assign({}, G, f.units);
 
+// foods you have logged before rank higher, so suggestions learn what you eat
+let _usedCache = null, _usedAt = -1;
+function usedNames(){
+  const n = Object.keys(state.days).length;
+  if(_usedCache && _usedAt === n) return _usedCache;
+  const m = new Map();
+  Object.values(state.days).forEach(l => l.forEach(e => { const k = tok(String(e.name||'').replace(/\s*\([^)]*\)\s*$/,'')).join(' '); if(k) m.set(k, (m.get(k)||0) + 1); }));
+  _usedCache = m; _usedAt = n; return m;
+}
 function search(q, limit){
   const qt = tok(q); if(!qt.length) return [];
-  const qs = qt.join(' ');
+  const qs = qt.join(' '), used = usedNames();
   const all = customFoods().concat(DB);
+  const seen = new Set();
   return all.map((f,idx)=>{
-    let m = 0; qt.forEach(t=>{ if(f.tokens.has(t)) m++; });
+    // the word still being typed matches by its start, so "chick" finds chicken
+    let m = 0, inName = 0; const hit = new Set();
+    qt.forEach((t,i)=>{
+      if(f.tokens.has(t)){ m++; hit.add(t); if(f.nameTokens.has(t)) inName++; }
+      else if(i === qt.length - 1 && t.length >= 2){
+        for(const ft of f.tokens){ if(ft.startsWith(t)){ m += .85; hit.add(ft); if(f.nameTokens.has(ft)) inName++; break; } }
+      }
+    });
     const ratio = m/qt.length;
     if(!m || ratio < 0.5) return null;
-    const extra = [...f.nameTokens].filter(t=>!qt.includes(t)).length;
-    let s = ratio*10 - extra*0.3 - idx*0.001;
+    const extra = [...f.nameTokens].filter(t=>!hit.has(t)).length;
+    let s = ratio*10 - extra*0.3 - idx*0.001 + inName*0.6;
     if(f.phrases.includes(qs)) s += 5;
     if(f.custom) s += 1;
     if(f.ext) s -= 1.2;
+    const u = used.get(f.phrases[0]); if(u) s += Math.min(3, 1 + Math.log2(u));
     return {f,s};
-  }).filter(Boolean).sort((a,b)=>b.s-a.s).slice(0, limit || 6).map(x=>x.f);
+  }).filter(Boolean).sort((a,b)=>b.s-a.s)
+    .filter(x => { const k = x.f.name.toLowerCase(); if(seen.has(k)) return false; seen.add(k); return true; })
+    .slice(0, limit || 6).map(x=>x.f);
 }
 
 function num(t){
@@ -6348,7 +6369,30 @@ function previewHTML(rows){
   return {html, tot, n};
 }
 
-$('q').addEventListener('input', parseAll);
+$('q').addEventListener('input', () => { parseAll(); suggestFoods(); });
+// suggest foods for the item being typed; tapping one fills it in and starts the next item
+let suggestions = [];
+function currentFragment(){
+  const v = $('q').value, cut = Math.max(v.lastIndexOf(','), v.lastIndexOf('\n'), v.lastIndexOf(';'), v.lastIndexOf('+'));
+  return {before: v.slice(0, cut + 1), frag: v.slice(cut + 1)};
+}
+function suggestFoods(){
+  const {frag} = currentFragment(), p = parseItem(frag.trim()), box = $('suggest');
+  suggestions = p.name && p.name.replace(/[^a-z]/gi,'').length >= 2 ? search(p.name, 6) : [];
+  // nothing to suggest once the item already names its food exactly
+  if(suggestions.length && tok(suggestions[0].name).join(' ') === tok(p.name).join(' ')) suggestions = [];
+  box.hidden = !suggestions.length;
+  box.innerHTML = suggestions.map((f,i) => `<button type="button" class="chip" data-s="${i}">${esc(f.name)}</button>`).join('');
+}
+$('suggest').addEventListener('click', ev => {
+  const b = ev.target.closest('[data-s]'); if(!b) return;
+  const f = suggestions[+b.dataset.s], {before, frag} = currentFragment(), p = parseItem(frag.trim());
+  const amt = (p.qty !== 1 || p.unit) ? `${Math.round(p.qty*100)/100}${p.unit ? ' ' + p.unit : ''} ` : '';
+  const lead = before ? (before.endsWith(' ') ? before : before + ' ') : '';
+  $('q').value = lead + amt + f.name.replace(/[,;+]/g, '') + ', ';
+  parseAll(); suggestFoods();
+  $('q').focus(); const n = $('q').value.length; $('q').setSelectionRange(n, n);
+});
 $('q').addEventListener('keydown', ev=>{
   if(ev.key === 'Enter' && !ev.shiftKey){ ev.preventDefault(); if(!$('addAll').hidden) $('addAll').click(); }
 });
@@ -6361,7 +6405,7 @@ $('addAll').onclick = () => {
     const lab = res.u === 'each' ? `×${q}` : `${q} ${res.u}`;
     (state.days[k] = state.days[k] || []).push({name:`${r.f.name} (${lab})`, cal:Math.round(res.cal), pro:r1(res.pro), carb:r1(res.carb), fat:r1(res.fat)});
   });
-  save(); $('q').value = ''; rows = []; renderPreview(); render();
+  save(); $('q').value = ''; rows = []; renderPreview(); suggestFoods(); render();
 };
 
 /* ---------- batches: cook once, log portions ---------- */
