@@ -1234,7 +1234,7 @@ document.querySelector('details.custom').addEventListener('toggle', ev => { if(e
 let trayOpen = false, moreOpen = false, sheetOpen = false;
 function trayUpdate(){
   const v = $('q').value.trim(), hasRecent = !!(window._recent && window._recent.length);
-  $('recentPanel').hidden = !!v || !hasRecent || moreOpen;
+  $('recentPanel').hidden = !!v || !hasRecent || moreOpen || !!(staged && staged.length);
   $('morePanel').hidden = !moreOpen;
   $('moreBtn').setAttribute('aria-expanded', String(moreOpen));
 }
@@ -6743,7 +6743,12 @@ function parseRows(text){
     return {name:p.name || raw, qty:p.qty, unit:p.unit, opts, f:opts[0] || null};
   });
 }
-function parseAll(){ rows = parseRows($('q').value); renderPreview(); }
+// foods you've picked stack up here; the search box only ever holds the one you're looking for
+var staged = [];
+function parseAll(){ rows = staged.concat(parseRows($('q').value)); renderPreview(); }
+function stageRow(f, qty, unit){
+  staged.push({name:f.name, qty, unit, f, opts:[f].concat(search(f.name).filter(o => o !== f))});
+}
 function rowsTotal(rs){
   return rs.reduce((t,r)=>{ if(!r.f || !r.qty) return t; const x = resolve(r.f, r.qty, r.unit);
     return {cal:t.cal+x.cal, pro:t.pro+x.pro, carb:t.carb+x.carb, fat:t.fat+x.fat}; }, {cal:0,pro:0,carb:0,fat:0});
@@ -6765,7 +6770,7 @@ function wirePreview(el, getRows, redraw){
 }
 function renderPreview(){
   // while suggestions float for the item being typed, that item waits for a tap instead of being picked for you
-  const pending = !$('suggest').hidden && currentFragment().frag.trim() && rows.length;
+  const pending = !$('suggest').hidden && $('q').value.trim() && rows.length > staged.length;
   const out = previewHTML(rows), shown = pending ? previewHTML(rows.slice(0, -1)) : out;
   $('preview').innerHTML = shown.html;
   const b = $('addAll'), n = out.n, tot = out.tot;
@@ -6773,6 +6778,7 @@ function renderPreview(){
   b.textContent = `Add ${n} item${n>1?'s':''} to the log (${Math.round(tot)} cal)`;
   $('goBtn').disabled = !n; $('shTot').textContent = n ? '+' + Math.round(tot) : '';
   $('goBtn').setAttribute('aria-label', `Add ${n} item${n>1?'s':''} to the log, ${Math.round(tot)} calories`);
+  if(typeof trayUpdate === 'function') trayUpdate();
 }
 function previewHTML(rows){
   let tot = 0, n = 0;
@@ -6809,16 +6815,17 @@ function suggestFoods(){
 $('suggest').addEventListener('click', ev => {
   const b = ev.target.closest('[data-s]'); if(!b) return;
   const f = suggestions[+b.dataset.s], {before, frag} = currentFragment(), p = parseItem(frag.trim());
-  const amt = (p.qty !== 1 || p.unit) ? `${Math.round(p.qty*100)/100}${p.unit ? ' ' + p.unit : ''} ` : '';
-  const lead = before ? (before.endsWith(' ') ? before : before + ' ') : '';
-  $('q').value = lead + amt + f.name.replace(/[,;+]/g, '') + ', ';
+  // anything typed before a comma still counts, then the picked food joins the list and the box clears
+  if(before.trim()) parseRows(before).forEach(r => { if(r.f) staged.push(r); });
+  stageRow(f, p.qty, p.unit);
+  $('q').value = '';
   suggestFoods(); parseAll();
-  $('q').focus(); const n = $('q').value.length; $('q').setSelectionRange(n, n);
+  $('q').focus();
 });
 $('q').addEventListener('keydown', ev=>{
   if(ev.key === 'Enter' && !ev.shiftKey){ ev.preventDefault(); if(!$('addAll').hidden) $('addAll').click(); }
 });
-wirePreview($('preview'), () => rows, renderPreview);
+wirePreview($('preview'), () => rows, () => { staged = staged.filter(r => rows.includes(r)); renderPreview(); });
 $('addAll').onclick = () => {
   const k = dkey(current);
   rows.forEach(r=>{
@@ -6827,7 +6834,7 @@ $('addAll').onclick = () => {
     const lab = res.u === 'each' ? `×${q}` : `${q} ${res.u}`;
     (state.days[k] = state.days[k] || []).push({name:`${r.f.name} (${lab})`, cal:Math.round(res.cal), pro:r1(res.pro), carb:r1(res.carb), fat:r1(res.fat), t:Date.now()});
   });
-  save(); $('q').value = ''; rows = []; renderPreview(); suggestFoods(); trayClose(); render();
+  save(); $('q').value = ''; rows = []; staged = []; renderPreview(); suggestFoods(); trayClose(); render();
 };
 
 /* ---------- batches: cook once, log portions ---------- */
@@ -7003,9 +7010,9 @@ function keepScanned(name, per, serving, grams){
 }
 function stageFood(name){
   openSheet();
-  $('q').value = '1 serving ' + name;
-  suggestions = []; $('suggest').hidden = true; $('suggest').innerHTML = '';
-  parseAll();
+  const f = search(name)[0];
+  if(f){ stageRow(f, 1, 'serving'); $('q').value = ''; } else $('q').value = '1 serving ' + name;
+  suggestFoods(); parseAll();
 }
 
 /* ---------- barcode scanning (camera plus Open Food Facts) ---------- */
