@@ -7023,32 +7023,73 @@ async function openScan(){
 }
 async function closeScan(){ await stopScanner(); $('scanModal').hidden = true; }
 
+// small packages print 8-digit UPC-E codes; databases file them under the full 12-digit UPC-A
+function upcE2A(e){
+  const d = e.slice(1, 7), sys = e[0], ck = e[7], last = d[5];
+  let m;
+  if('012'.includes(last)) m = d.slice(0,2) + last + '0000' + d.slice(2,5);
+  else if(last === '3') m = d.slice(0,3) + '00000' + d.slice(3,5);
+  else if(last === '4') m = d.slice(0,4) + '00000' + d[4];
+  else m = d.slice(0,5) + '0000' + last;
+  return sys + m + ck;
+}
+// Open Food Facts first (crowd-sourced, has most snacks), then USDA's branded foods list (most US groceries).
+// skip the brand when the product name already says it ("Coca-Cola Coca-Cola")
+const joinBrand = (b, n) => (!b || n.toLowerCase().includes(b.toLowerCase())) ? (n || b) : b + ' ' + n;
+async function offLookup(codes){
+  for(const c of codes){
+    try{
+      const res = await fetch('https://world.openfoodfacts.org/api/v2/product/' + c + '.json?fields=product_name,brands,nutriments,serving_size,serving_quantity');
+      const d = await res.json(), p = d && d.status === 1 ? d.product : null;
+      if(!p) continue;
+      const n = p.nutriments || {};
+      let kcal = n['energy-kcal_100g'];
+      if(kcal == null && n['energy_100g'] != null) kcal = n['energy_100g']/4.184;
+      if(kcal == null) continue;
+      const brand = p.brands ? p.brands.split(',')[0].trim() : '';
+      return {name:joinBrand(brand, p.product_name || ''), per:{cal:+kcal, pro:+n.proteins_100g || 0, carb:+n.carbohydrates_100g || 0, fat:+n.fat_100g || 0}, serv:parseFloat(p.serving_quantity) || 100};
+    }catch(e){}
+  }
+  return null;
+}
+let usdaLimited = false;
+async function usdaLookup(codes){
+  usdaLimited = false;
+  const tc = s => s.toLowerCase().replace(/\b[a-z]/g, ch => ch.toUpperCase());
+  for(const c of codes){
+    try{
+      const gtin = c.padStart(14, '0');
+      const res = await fetch('https://api.nal.usda.gov/fdc/v1/foods/search?api_key=DEMO_KEY&dataType=Branded&pageSize=5&query=' + gtin);
+      if(res.status === 429){ usdaLimited = true; continue; }
+      const d = await res.json();
+      const f = (d.foods || []).find(x => (x.gtinUpc || '').padStart(14, '0') === gtin);
+      if(!f) continue;
+      const nv = num => { const x = (f.foodNutrients || []).find(n => n.nutrientNumber === num); return x ? +x.value || 0 : 0; };
+      const cal = nv('208'); if(!cal && !nv('203')) continue;
+      const brand = f.brandName || f.brandOwner || '';
+      const unit = (f.servingSizeUnit || '').toLowerCase();
+      return {name:joinBrand(brand && tc(brand), tc(f.description || '')), per:{cal, pro:nv('203'), carb:nv('205'), fat:nv('204')}, serv:(unit === 'g' || unit === 'ml' || unit === 'grm' || unit === 'mlt') && f.servingSize ? +f.servingSize : 100};
+    }catch(e){}
+  }
+  return null;
+}
 async function lookupBarcode(raw){
   if(scanBusy) return;
   let code = String(raw).replace(/\D/g,'');
-  if(code.length === 12) code = '0' + code;
   if(code.length < 8){ setScanMsg('That does not look like a full product barcode, which usually has between 8 and 13 digits.'); return; }
   scanBusy = true;
-  setScanMsg('Looking up ' + code + '…');
-  let data;
-  try{
-    const res = await fetch('https://world.openfoodfacts.org/api/v2/product/' + code + '.json?fields=product_name,brands,nutriments,serving_size,serving_quantity');
-    data = await res.json();
-  }catch(e){
-    scanBusy = false;
-    setScanMsg('The food database could not be reached from this page. If the page is running inside a sandbox that blocks outside requests, opening the file directly in your browser should fix it.');
-    return;
-  }
-  const p = data && data.status === 1 ? data.product : null;
-  if(!p){ scanBusy = false; setScanMsg('The database has no entry for ' + code + '. You can add it under Add a custom food instead.'); return; }
-  const n = p.nutriments || {};
-  let kcal = n['energy-kcal_100g'];
-  if(kcal == null && n['energy_100g'] != null) kcal = n['energy_100g']/4.184;
-  if(kcal == null){ scanBusy = false; setScanMsg('The database knows this product but has no nutrition numbers for it. You can add it under Add a custom food instead.'); return; }
-  const brand = p.brands ? p.brands.split(',')[0].trim() : '';
-  const full = [brand, p.product_name].filter(Boolean).join(' ');
-  const per = {cal:kcal, pro:+n.proteins_100g || 0, carb:+n.carbohydrates_100g || 0, fat:+n.fat_100g || 0};
-  const name = keepScanned(full, per, parseFloat(p.serving_quantity) || 100, true);
+  setScanMsg('Looking up ' + code + '\u2026');
+  const codes = [];
+  const add = c => { if(c && !codes.includes(c)) codes.push(c); };
+  if(code.length === 8 && /^[01]/.test(code)) add(upcE2A(code));
+  if(code.length === 12) add('0' + code);
+  add(code);
+  if(code.length === 13 && code[0] === '0') add(code.slice(1));
+  if(code.length === 14) add(code.replace(/^0+/, '').padStart(13, '0'));
+  const hit = await offLookup(codes) || await usdaLookup(codes);
+  if(!hit && usdaLimited){ scanBusy = false; setScanMsg('Open Food Facts has no entry for ' + code + ', and the USDA list is busy right now. Try again in a while, or add it under More \u2192 Add a custom food.'); return; }
+  if(!hit){ scanBusy = false; setScanMsg('Neither food database has ' + code + '. Check the digits, or add it under More \u2192 Add a custom food.'); return; }
+  const name = keepScanned(hit.name, hit.per, hit.serv, true);
   await closeScan();
   setToolMsg('Found ' + name + '. Adjust the amount below if you ate more or less than one serving.');
   stageFood(name);
