@@ -1351,18 +1351,26 @@ $('q').addEventListener('focus', trackKeyboard);
 $('q').addEventListener('blur', trackKeyboard);
 // tapping a button in the screen keeps the keyboard up
 $('composer').addEventListener('mousedown', ev => { const b = ev.target.closest('button'); if(b && b.id !== 'shClose' && document.activeElement === $('q')) ev.preventDefault(); });
+// on iOS a tap on a button takes focus off the search box and drops the keyboard; while typing, take the tap
+// at touchend instead (cancelling the default keeps focus) and fire the button ourselves
+let trayDragged = false;
+$('composer').addEventListener('touchend', ev => {
+  const b = ev.target.closest('button');
+  if(!b || b.id === 'shClose' || trayDragged || document.activeElement !== $('q')) return;
+  ev.preventDefault(); b.click();
+}, {passive:false});
 // iOS pans the whole app under the keyboard when a drag isn't used by a scroller; only the list may move
 // and in the home screen app iOS won't hand that drag to the list while the keyboard is up, so the list is
 // scrolled by hand here: follow the finger, then glide to a stop. a drag never counts as a tap on a food.
 document.addEventListener('touchmove', ev => { if(sheetOpen && !$('tray').contains(ev.target)) ev.preventDefault(); }, {passive:false});
 (function(){
   const t = $('tray'); let y = 0, last = 0, lt = 0, v = 0, moved = false, raf = 0;
-  t.addEventListener('touchstart', ev => { cancelAnimationFrame(raf); y = last = ev.touches[0].clientY; lt = ev.timeStamp; v = 0; moved = false; }, {passive:true});
+  t.addEventListener('touchstart', ev => { cancelAnimationFrame(raf); y = last = ev.touches[0].clientY; lt = ev.timeStamp; v = 0; moved = false; trayDragged = false; }, {passive:true});
   t.addEventListener('touchmove', ev => {
     if(ev.touches.length > 1) return;
     const cy = ev.touches[0].clientY, dy = cy - last;
     if(!moved && Math.abs(cy - y) < 6) return;
-    moved = true; ev.preventDefault();
+    moved = true; trayDragged = true; ev.preventDefault();
     t.scrollTop -= dy;
     const dt = Math.max(1, ev.timeStamp - lt); v = .8 * (dy / dt) + .2 * v; last = cy; lt = ev.timeStamp;
   }, {passive:false});
