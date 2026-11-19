@@ -323,15 +323,18 @@
   .shT{display:flex;flex-direction:column;align-items:center;line-height:1.15}
   .shT b{font-size:17px} .shT span{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-3)}
   .shTot{min-width:44px;text-align:right;font-family:var(--mono);font-size:14px;color:var(--score,var(--action))}
-  .bar{display:flex;gap:var(--s2);align-items:center;padding:var(--s2) 0}
+  .bar{display:flex;gap:var(--s2);align-items:center;padding:var(--s2) 0 calc(var(--s2) + var(--kbpad, env(safe-area-inset-bottom,0px)));border-top:1px solid var(--rule)}
   .bar input{flex:1;min-width:0;height:48px;font-size:17px}
   .barBtn{flex:none;width:48px;height:48px;display:flex;align-items:center;justify-content:center;border:1px solid var(--rule-strong);border-radius:var(--r-ctl);background:none;color:var(--ink);font-size:22px;font-family:var(--mono);cursor:pointer;padding:0}
   .barBtn.go{background:var(--action);border-color:var(--action);color:var(--on-action);font-weight:700;transition:opacity .15s}
   .barBtn.go:disabled{opacity:.25}
-  .shTools{display:flex;gap:var(--s2);padding-bottom:var(--s2);border-bottom:1px solid var(--rule)}
+  .shTools{display:flex;gap:var(--s2);padding:var(--s1) 0 var(--s2);border-bottom:1px solid var(--rule)}
   .chipB{height:32px;padding:0 14px;border:1px solid var(--rule-strong);border-radius:999px;background:none;color:var(--ink-2);font:inherit;font-size:13px;font-weight:600;cursor:pointer}
   .chipB[aria-expanded="true"]{border-color:var(--action);color:var(--action)}
-  #tray{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;padding:var(--s1) 0 calc(var(--s5) + env(safe-area-inset-bottom,0px))}
+  /* the list sits on the bar: short lists hug the bottom, long ones scroll */
+  #tray{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;padding:var(--s1) 0 var(--s2);display:flex;flex-direction:column}
+  #tray::before{content:"";flex:1 0 0}
+  #tray > *{flex:none}
   .trayLbl{font-family:var(--mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-3);margin:var(--s2) 0 var(--s1)}
   .sRow{display:grid;grid-template-columns:36px minmax(0,1fr) auto;gap:12px;align-items:center;width:100%;padding:10px 0;background:none;border:0;border-bottom:1px dashed var(--rule);color:var(--ink);text-align:left;font:inherit;font-size:16px;cursor:pointer}
   .sRow span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -668,19 +671,14 @@
         <div class="shT"><b>Log food</b><span id="shDay"></span></div>
         <span class="shTot num" id="shTot"></span>
       </div>
-      <div class="bar">
-        <button class="barBtn" id="scanBtn" type="button" aria-label="Scan a barcode"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 5v14M8 5v14M12 5v14M16 5v9M20 5v14M16 18v1"/></svg></button>
-        <input id="q" type="text" placeholder="What did you eat?" aria-label="What did you eat" autocomplete="off" enterkeyhint="done">
-        <button class="barBtn go" id="goBtn" type="button" aria-label="Add to the log" disabled>✓</button>
-      </div>
       <div class="shTools">
         <button class="chipB" id="batchBtn" type="button">Batch</button>
         <button class="chipB" id="moreBtn" type="button" aria-expanded="false">Custom food</button>
       </div>
       <div id="tray">
         <div id="recentPanel" hidden><div class="trayLbl">Recent</div><div class="sList" id="recent" aria-label="Recent foods"></div></div>
-        <div class="sList" id="suggest" aria-label="Suggestions" hidden></div>
         <div id="preview"></div>
+        <div class="sList" id="suggest" aria-label="Suggestions" hidden></div>
         <button class="primary" id="addAll" hidden aria-hidden="true" tabindex="-1" style="display:none"></button>
         <div id="morePanel" hidden>
           <details class="custom" open>
@@ -698,6 +696,11 @@
     </details>
         </div>
         <p class="status" id="toolMsg" role="status" aria-live="polite"></p>
+      </div>
+      <div class="bar">
+        <button class="barBtn" id="scanBtn" type="button" aria-label="Scan a barcode"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 5v14M8 5v14M12 5v14M16 5v9M20 5v14M16 18v1"/></svg></button>
+        <input id="q" type="text" placeholder="What did you eat?" aria-label="What did you eat" autocomplete="off" enterkeyhint="done">
+        <button class="barBtn go" id="goBtn" type="button" aria-label="Add to the log" disabled>✓</button>
       </div>
     </div>
   </div>
@@ -1334,6 +1337,8 @@ function placeComposer(){
   const vv = window.visualViewport, c = $('composer');
   if(!sheetOpen) return;
   c.style.height = (vv ? vv.height : window.innerHeight) + 'px';
+  // the keyboard covers the home indicator, so drop that padding while it's up
+  c.style.setProperty('--kbpad', vv && window.innerHeight - vv.height > 80 ? '0px' : 'env(safe-area-inset-bottom, 0px)');
   c.style.top = (vv ? vv.offsetTop : 0) + 'px';
 }
 if(window.visualViewport){ visualViewport.addEventListener('resize', placeComposer); visualViewport.addEventListener('scroll', placeComposer); }
