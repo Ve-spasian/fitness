@@ -386,6 +386,10 @@
   .howSteps li::before{content:counter(st);font-family:var(--mono);font-weight:700;color:var(--score,var(--action))}
   .howX{margin-top:var(--s3);padding:12px 14px;border-radius:var(--r-ctl);background:color-mix(in srgb, var(--caution,#e5a800) 12%, transparent);font-size:14px;line-height:1.45}
   .howX b{display:block;font-family:var(--mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--caution,#e5a800);margin-bottom:4px}
+  .tOpts + .card.cal{margin-top:var(--s5)}
+  .tOpts{display:flex;flex-wrap:wrap;justify-content:center;gap:var(--s2);margin-top:var(--s2)}
+  .chipSel{position:relative;display:inline-flex;align-items:center;overflow:hidden}
+  .chipSel select{position:absolute;inset:0;opacity:0;width:100%;height:100%;font-size:16px}
   /* ---------- ledger home ---------- */
   #nCal{margin-top:var(--s1)}
   .lgSec{margin:var(--s5) 0 0}
@@ -7667,6 +7671,13 @@ function renderMonthView(){
     const isToday = dkey(tIt.date) === todayK, logged = rec ? rec.ex.reduce((a, e) => a + e.sets.filter(x => x.ok).length, 0) : 0;
     const nSets = exs.reduce((a, e) => a + e.sets, 0), burn = workoutBurn(tp), mm = muscleMap(exs);
     const eyebrow = tIt.fin ? 'Done today' : isToday ? 'Today' : 'Next \u00b7 ' + tIt.date.toLocaleDateString(undefined, {weekday:'long'});
+    // can't do this one today: swap in another from this block of five, or push everything back a day
+    let heroOpts = '';
+    if(!tIt.fin && tIt.n === nextIdx()){
+      const end = (Math.floor(tIt.n / TPL.length) + 1) * TPL.length - 1, opts = [];
+      for(let m = tIt.n + 1; m <= end; m++) opts.push(`<option value="${m}">${esc(tplOf(m).name)}, ${esc(tplOf(m).focus)}</option>`);
+      heroOpts = `<div class="tOpts">${opts.length ? `<label class="chipB chipSel">Swap workout<select id="heroSwap" data-n="${tIt.n}" aria-label="Swap in a different workout"><option value="">Swap workout</option>${opts.join('')}</select></label>` : ''}<button class="chipB" id="heroPush" type="button">Push back a day</button></div>`;
+    }
     const btn = tIt.fin ? 'Review today\u2019s workout' : logged ? 'Continue today\u2019s workout' : isToday ? 'Start today\u2019s workout' : 'Rest day \u00b7 open ' + tp.name;
     hero = `<section class="card obj tHero ${tIt.fin ? 'fin' : ''}">
         <div class="tHeroTx">
@@ -7677,7 +7688,7 @@ function renderMonthView(){
         </div>
         <div class="tFigs">${bodySVG('front', mm, tIt.fin)}${bodySVG('back', mm, tIt.fin)}</div>
       </section>
-      <button class="bigBtn" type="button" data-open="${tIt.n}">${btn}</button>`;
+      <button class="bigBtn" type="button" data-open="${tIt.n}">${btn}</button>${heroOpts}`;
   }
   $('tBody').innerHTML = hero + `
     <section class="card cal">
@@ -7772,6 +7783,7 @@ $('tBody').addEventListener('click', ev=>{
   if(t.closest('#tBack')){ openN = null; renderTrain(); window.scrollTo(0,0); return; }
   const go = t.closest('.bigBtn[data-open]');
   if(go){ openN = +go.dataset.open; renderTrain(); window.scrollTo(0,0); return; }
+  if(t.closest('#heroPush')){ const sN = infoOf(nextIdx()); state.train.notBefore = dkey(addDays(sN.date, 1)); save(); renderTrain(); return; }
   if(t.closest('#startApply')){ const v = $('startDate').value; if(v){ state.train.start = v; state.train.notBefore = null; save(); renderTrain(); } return; }
   const rec = openN !== null && sessRec(openN); if(!rec) return;
   const chk = t.closest('.chk');
@@ -7803,8 +7815,8 @@ $('tBody').addEventListener('click', ev=>{
   }
 });
 $('tBody').addEventListener('change', ev=>{
-  if(ev.target.id === 'swapDay'){
-    const m = +ev.target.value, n = openN; if(!m || n === null) return;
+  if(ev.target.id === 'swapDay' || ev.target.id === 'heroSwap'){
+    const m = +ev.target.value, n = ev.target.id === 'heroSwap' ? +ev.target.dataset.n : openN; if(!m || n === null) return;
     const logged = [n, m].some(k => { const r = sessRec(k); return r && (r.ex||[]).some(e => e.sets.some(x => x.ok)); });
     if(logged && !confirm('Sets are already logged on one of these, and switching clears them. Switch anyway?')){ ev.target.value = ''; return; }
     const tm = tmapOf(), a = tplIdx(n), b = tplIdx(m);
