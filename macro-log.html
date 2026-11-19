@@ -7084,8 +7084,8 @@ const TPL = [
     {n:'Triceps pushdown', sets:3, lo:10, hi:12, inc:2.5, alts:['Rope pushdown','Overhead cable triceps extension']},
     {n:'Ab crunch machine', sets:4, lo:10, hi:15, inc:5, ab:true, alts:[]}]},
   {type:'L', name:'Lower A', focus:'quads', ex:[
-    {n:'Hack squat', sets:4, lo:6, hi:10, inc:10, alts:['Pendulum squat','Leg press','Smith machine squat']},
-    {n:'Leg press', sets:3, lo:10, hi:12, inc:10, alts:['Belt squat','Hack squat']},
+    {n:'V squat', sets:4, lo:6, hi:10, inc:10, alts:['Linear leg press','Seated leg press']},
+    {n:'Linear leg press', sets:3, lo:10, hi:12, inc:10, alts:['Seated leg press','V squat']},
     {n:'Dumbbell split squat', sets:3, lo:8, hi:10, inc:5, alts:['Walking lunge','Bulgarian split squat']},
     {n:'Lying leg curl', sets:3, lo:10, hi:12, inc:5, alts:['Seated leg curl','Assisted nordic curl']},
     {n:'Leg extension', sets:3, lo:12, hi:15, inc:5, alts:['Single-leg extension','Sissy squat']},
@@ -7102,7 +7102,7 @@ const TPL = [
     {n:'Barbell hip thrust', sets:4, lo:6, hi:10, inc:10, alts:['Hip thrust machine','Smith machine hip thrust','Glute bridge']},
     {n:'45-degree back extension', sets:3, lo:10, hi:12, inc:5, alts:['Reverse hyperextension','Back extension machine']},
     {n:'Seated leg curl', sets:4, lo:8, hi:12, inc:5, alts:['Lying leg curl','Assisted nordic curl']},
-    {n:'Leg press, feet high and wide', sets:3, lo:10, hi:12, inc:10, alts:['Hack squat, feet high','Smith machine squat']},
+    {n:'Linear leg press, feet high and wide', sets:3, lo:10, hi:12, inc:10, alts:['Seated leg press, feet high','V squat, feet high']},
     {n:'Bulgarian split squat', sets:3, lo:8, hi:10, inc:5, alts:['Dumbbell split squat','Walking lunge']},
     {n:'Cable pull-through', sets:3, lo:12, hi:15, inc:5, alts:['Hip abduction machine','Kettlebell swing']},
     {n:'Seated calf raise', sets:4, lo:12, hi:15, inc:5, alts:['Standing calf raise','Leg press calf raise']}]},
@@ -7188,7 +7188,11 @@ const EX_INFO = {
   'Overhead cable triceps extension':'Face away from the cable and extend overhead, big stretch on the long head. Triceps.',
   'Skull crushers':'Lower an EZ bar toward your forehead lying down, then extend. Triceps.',
   'Ab crunch machine':'Curl your ribs toward your hips against the pad. Abs.',
-  'Hack squat':'Squat on an angled sled with your back on the pad. Quads, glutes.',
+  'V squat':'Squat on the V-shaped sled with the pads on your shoulders. Quads, glutes.',
+  'V squat, feet high':'Feet high on the V squat platform. Glutes, hamstrings.',
+  'Linear leg press':'Push the angled sled up its track with your feet. Quads, glutes.',
+  'Seated leg press':'Sit upright and press the footplate away. Quads, glutes.',
+  'Seated leg press, feet high':'Feet high on the footplate. Glutes, hamstrings.',
   'Pendulum squat':'Squat on a swinging lever, very deep knee bend. Quads.',
   'Leg press':'Push the sled away with your feet. Quads, glutes.',
   'Smith machine squat':'Squat on a fixed bar track, feet a little forward. Quads, glutes.',
@@ -7223,8 +7227,7 @@ const EX_INFO = {
   '45-degree back extension':'Hinge over the pad and lift back up, round the upper back a little for glutes. Bodyweight, hold a plate to add load. Glutes, hamstrings, lower back.',
   'Reverse hyperextension':'Lie face down and swing the legs up behind you. Glutes, lower back.',
   'Back extension machine':'Seated extension against a pad. Lower back, glutes.',
-  'Leg press, feet high and wide':'Feet high and wide on the sled shifts work to the hips. Glutes, hamstrings, adductors.',
-  'Hack squat, feet high':'Feet high on the platform. Glutes, hamstrings.',
+  'Linear leg press, feet high and wide':'Feet high and wide on the sled shifts work to the hips. Glutes, hamstrings, adductors.',
   'Cable pull-through':'Face away from a low cable and hinge, then drive the hips forward. Glutes, hamstrings.',
   'Hip abduction machine':'Push your knees out against the pads. Outer glutes.',
   'Kettlebell swing':'Hinge and snap the hips to swing the bell to chest height. Glutes, hamstrings.',
@@ -7714,7 +7717,15 @@ function normalizeState(){
   state.days = state.days || {}; state.body = state.body || {}; state.custom = state.custom || [];
   state.train = state.train || {}; state.train.sessions = state.train.sessions || {}; state.meta = state.meta || {};
   state.recipes = state.recipes || [];
+  renameLifts();
   fixFutureDates();
+}
+// his gym has a V squat, a linear leg press and a seated leg press (no hack squat): older logs carry the old names
+function renameLifts(){
+  const MAP = {'Hack squat':'V squat','Leg press':'Linear leg press','Leg press, feet high and wide':'Linear leg press, feet high and wide','Hack squat, feet high':'V squat, feet high'};
+  let changed = false;
+  Object.values(state.train.sessions).forEach(ss => (ss.ex || []).forEach(x => { if(MAP[x.n]){ x.n = MAP[x.n]; changed = true; } }));
+  if(changed) save();
 }
 // older versions saved a weigh-in to whatever day was on screen, so a day swiped ahead by mistake could hold
 // tomorrow's weight. a weigh-in can't be in the future: move it to today (if today has none) or drop it.
