@@ -354,6 +354,19 @@
   .xpBar{flex:1;height:6px;border-radius:3px;background:var(--rule);overflow:hidden}
   .xpBar i{display:block;height:100%;background:var(--action);border-radius:3px}
   .xpCal span{font-family:var(--mono);font-size:12px;color:var(--ink-2);white-space:nowrap}
+  /* ---------- training top: today's workout and what it works ---------- */
+  .tHero{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:var(--s3);align-items:center}
+  .tHero .tName{font-size:44px;line-height:1.02;margin-top:var(--s1)}
+  .tFocus{margin-top:6px;font-size:15px;color:var(--ink-2)}
+  .tStats{display:flex;flex-wrap:wrap;gap:4px 14px;margin-top:var(--s3);font-size:12px;color:var(--ink-3)}
+  .tStats b{font-size:15px;color:var(--ink);margin-right:3px}
+  .tFigs{display:flex;gap:6px}
+  .bodyFig{width:66px;height:auto;display:block}
+  .bigBtn{display:flex;align-items:center;justify-content:center;width:100%;height:52px;margin-top:var(--s3);border:0;border-radius:var(--r-ctl);
+    background:#fff;color:#0b0d10;font:inherit;font-size:16px;font-weight:700;cursor:pointer;transition:transform .15s var(--ease)}
+  .bigBtn:active{transform:scale(.98)}
+  .tHero.fin + .bigBtn{background:none;color:var(--ink);border:1px solid var(--rule-strong)}
+  .tHero + .bigBtn + .card.cal{margin-top:var(--s5)}
   /* ---------- ledger home ---------- */
   #nCal{margin-top:var(--s1)}
   .lgSec{margin:var(--s5) 0 0}
@@ -7349,6 +7362,47 @@ const BW_EX = new Set(['Pull-up','Assisted pull-up','Hanging leg raise','Hanging
   'Assisted nordic curl','Sissy squat','45-degree back extension','Glute bridge']);
 // rough calories for a whole workout: about 45 s of work and 90 s of rest per set, plus warm-up,
 // at 5 METs (moderate to hard lifting), using the latest logged bodyweight
+/* ---------- muscle map: pixel figures, front and back ---------- */
+// one letter per muscle: d delts, c chest, b biceps, f forearms, a abs, o obliques, q quads, i adductors, k calves,
+// t traps, r rear/side delts, u upper back, l lats, w lower back, x triceps, g glutes, m hamstrings, n not a muscle
+const BODY = {"front": [".............nnnnnn.............", "............nnnnnnnn............", "............nnnnnnnn............", "............nnnnnnnn............", "............nnnnnnnn............", "............nnnnnnnn............", "............nnnnnnnn............", ".............nnnnnn.............", "..............nnnn..............", "..............nnnn..............", ".............nnnnnn.............", ".........nnnnnnnnnnnnnn.........", ".......dddccccccccccccddd.......", "......ddddccccccccccccdddd......", ".....dddddccccccccccccddddd.....", ".....ddddccccccccccccccdddd.....", ".....ddddccccccccccccccdddd.....", ".....dddnccccccccccccccnddd.....", ".....bbb.cccccccccccccc.bbb.....", ".....bbb.oooaaaaaaaaooo.bbb.....", ".....bbb.oooaaaaaaaaooo.bbb.....", ".....bbb.oooaaaaaaaaooo.bbb.....", ".....bbb.oooaaaaaaaaooo.bbb.....", ".....bbb..ooaaaaaaaaoo..bbb.....", "....nnn...ooaaaaaaaaoo...nnn....", "...ffff...ooaaaaaaaaoo...ffff...", "...ffff...ooaaaaaaaaoo...ffff...", "...ffff...ooaaaaaaaaoo...ffff...", "...ffff...nnaaaaaaaann...ffff...", "...ffff..nnnnnnnnnnnnnn..ffff...", "...ffff.nnnnnnnnnnnnnnnn.ffff...", "...nnn..qqqqqqiiiiqqqqqq..nnn...", "...nnn..qqqqqqiiiiqqqqqq..nnn...", "...nnn..qqqqqqiiiiqqqqqq..nnn...", "........qqqqqqiiiiqqqqqq........", "........qqqqqqiiiiqqqqqq........", "........qqqqqqiiiiqqqqqq........", "........qqqqqqiiiiqqqqqq........", "........qqqqqq....qqqqqq........", "........qqqqqq....qqqqqq........", "........qqqqqq....qqqqqq........", "........qqqqqq....qqqqqq........", "........qqqqqq....qqqqqq........", "........qqqqqq....qqqqqq........", "........qqqqqq....qqqqqq........", "........qqqqqq....qqqqqq........", ".........nnnnn....nnnnn.........", ".........nnnnn....nnnnn.........", ".........kkkk......kkkk.........", ".........kkkk......kkkk.........", ".........kkkk......kkkk.........", ".........kkkk......kkkk.........", ".........kkkk......kkkk.........", ".........kkkk......kkkk.........", ".........kkkk......kkkk.........", ".........kkkk......kkkk.........", "..........kkk......kkk..........", "..........kkk......kkk..........", "..........kkk......kkk..........", "..........nnn......nnn..........", ".........nnnnn....nnnnn.........", "........nnnnnn....nnnnnn........"], "back": [".............nnnnnn.............", "............nnnnnnnn............", "............nnnnnnnn............", "............nnnnnnnn............", "............nnnnnnnn............", "............nnnnnnnn............", "............nnnnnnnn............", ".............nnnnnn.............", "..............nnnn..............", "..............tttt..............", "............tttttttt............", ".........tttttttttttttt.........", ".......rrrttuuuuuuuuttrrr.......", "......rrrruuuuuuuuuuuurrrr......", ".....rrrrruuuuuuuuuuuurrrrr.....", ".....rrrrlluuuuuuuuuullrrrr.....", ".....rrrrlluuuuuuuuuullrrrr.....", ".....rrrnlluuuuuuuuuullnrrr.....", ".....xxx.lllwwwwwwwwlll.xxx.....", ".....xxx.lllwwwwwwwwlll.xxx.....", ".....xxx.lllwwwwwwwwlll.xxx.....", ".....xxx.lllwwwwwwwwlll.xxx.....", ".....xxx..llwwwwwwwwll..xxx.....", ".....xxx..llwwwwwwwwll..xxx.....", "....nnn...llwwwwwwwwll...nnn....", "...ffff...nnwwwwwwwwnn...ffff...", "...ffff...nnwwwwwwwwnn...ffff...", "...ffff...nnwwwwwwwwnn...ffff...", "...ffff...gggggnnggggg...ffff...", "...ffff.nggggggnnggggggn.ffff...", "...ffff.nggggggnnggggggn.ffff...", "...nnn..nggggggnnggggggn..nnn...", "...nnn..nggggggnnggggggn..nnn...", "...nnn..nngggggnngggggnn..nnn...", "........nnnnnn....nnnnnn........", "........mmmmmm....mmmmmm........", "........mmmmmm....mmmmmm........", "........mmmmmm....mmmmmm........", "........mmmmmm....mmmmmm........", "........mmmmmm....mmmmmm........", "........mmmmmm....mmmmmm........", "........mmmmmm....mmmmmm........", "........mmmmmm....mmmmmm........", "........mmmmmm....mmmmmm........", "........mmmmmm....mmmmmm........", "........mmmmmm....mmmmmm........", ".........nnnnn....nnnnn.........", ".........nnnnn....nnnnn.........", ".........kkkk......kkkk.........", "........kkkkk......kkkkk........", "........kkkkk......kkkkk........", "........kkkkk......kkkkk........", "........kkkkk......kkkkk........", "........kkkkk......kkkkk........", ".........kkkk......kkkk.........", ".........kkkk......kkkk.........", ".........kkkk......kkkk.........", "..........nnn......nnn..........", "..........nnn......nnn..........", "..........nnn......nnn..........", ".........nnnnn....nnnnn.........", "........nnnnnn....nnnnnn........"]};
+const MUSCLE_WORDS = [
+  [/upper chest|chest|pec/, 'c'], [/rear delt/, 'r'], [/side delt/, 'dr'], [/front delt|delt|shoulder/, 'd'],
+  [/tricep/, 'x'], [/bicep/, 'b'], [/forearm|grip/, 'f'], [/lat/, 'l'], [/trap/, 't'], [/upper back/, 'ut'], [/mid back/, 'u'],
+  [/lower back|erector/, 'w'], [/ab|core|hip flexor/, 'a'], [/oblique/, 'o'], [/quad/, 'q'], [/adductor/, 'i'],
+  [/glute/, 'g'], [/hamstring/, 'm'], [/calf|calves|soleus/, 'k']];
+// what each exercise works, read from the last sentence of its blurb ("Quads, glutes.")
+function musclesOf(name){
+  const t = EX_INFO[name]; if(!t) return [];
+  const last = t.trim().replace(/\.$/, '').split('. ').pop().toLowerCase();
+  const out = [];
+  last.split(/,| and /).map(x => x.trim()).filter(Boolean).forEach(part => {
+    const hit = MUSCLE_WORDS.find(([re]) => re.test(part));
+    if(hit) hit[1].split('').forEach(c => { if(!out.includes(c)) out.push(c); });
+  });
+  return out;
+}
+// first-named muscle counts double; regions near the top score are primary, the rest secondary
+function muscleMap(exs){
+  const sc = {};
+  exs.forEach(e => musclesOf(e.n).forEach((c, i) => { sc[c] = (sc[c] || 0) + (i === 0 ? 2 : 1) * (e.sets || 3); }));
+  const top = Math.max(0, ...Object.values(sc)), pri = new Set(), sec = new Set();
+  Object.keys(sc).forEach(c => (sc[c] >= top * .5 ? pri : sec).add(c));
+  return {pri, sec};
+}
+function bodySVG(view, mm, done){
+  const g = BODY[view], H = g.length, W = g[0].length, on = done ? 'var(--earned)' : 'var(--action)';
+  const off = c => c === 'n' ? 'var(--body-n,#252a32)' : 'var(--body-m,#2f3540)';
+  let r = '';
+  g.forEach((row, y) => [...row].forEach((c, x) => {
+    if(c === '.') return;
+    const f = mm.pri.has(c) ? on : mm.sec.has(c) ? `color-mix(in srgb, ${on} 42%, var(--ground))` : off(c);
+    r += `<rect x="${x}" y="${y}" width="1" height="1" fill="${f}"/>`;
+    if(x + 1 < W && row[x+1] !== '.' && row[x+1] !== c) r += `<rect x="${x+.9}" y="${y}" width=".2" height="1" fill="var(--ground)"/>`;
+    if(y + 1 < H && g[y+1][x] !== '.' && g[y+1][x] !== c) r += `<rect x="${x}" y="${y+.9}" width="1" height=".2" fill="var(--ground)"/>`;
+  }));
+  return `<svg class="bodyFig" viewBox="0 0 ${W} ${H}" shape-rendering="crispEdges" aria-hidden="true">${r}</svg>`;
+}
 function workoutBurn(tp){
   const sets = tp.ex.reduce((a,e) => a + e.sets, 0), min = 6 + sets * 2.25;
   const bw = Object.keys(state.body).sort().reverse().map(k => state.body[k] && state.body[k].w).find(Boolean) || 180;
@@ -7458,7 +7512,27 @@ function renderMonthView(){
     wkRows += `<div class="wk ${full ? 'full' : ''} ${cur ? 'cur' : ''} ${past && !full ? 'miss' : ''}"><span class="wl">${lbl}</span><span class="wd">${dots}</span><span class="wm">${full ? '\u2713' : (cnt ? cnt + ' of ' + TPL.length : (past ? '' : ''))}</span></div>`;
   }
 
-  $('tBody').innerHTML = `
+  // the top: today's workout (or the next one), what it works, and one button to do it
+  const items = sequence(addDays(today, 30)), tIt = items.find(it => dkey(it.date) === todayK) || items.find(it => !it.fin && it.date >= today);
+  let hero = '';
+  if(tIt && nextIdx() > 0 || tIt && state.train.start){
+    const tp = tplOf(tIt.n), rec = sessRec(tIt.n), exs = rec && rec.ex ? rec.ex.map((e, j) => ({n:e.n, sets:e.sets.length || tp.ex[j].sets})) : tp.ex;
+    const isToday = dkey(tIt.date) === todayK, logged = rec ? rec.ex.reduce((a, e) => a + e.sets.filter(x => x.ok).length, 0) : 0;
+    const nSets = exs.reduce((a, e) => a + e.sets, 0), burn = workoutBurn(tp), mm = muscleMap(exs);
+    const eyebrow = tIt.fin ? 'Done today' : isToday ? 'Today' : 'Next \u00b7 ' + tIt.date.toLocaleDateString(undefined, {weekday:'long'});
+    const btn = tIt.fin ? 'Review today\u2019s workout' : logged ? 'Continue today\u2019s workout' : isToday ? 'Start today\u2019s workout' : 'Rest day \u00b7 open ' + tp.name;
+    hero = `<section class="card obj tHero ${tIt.fin ? 'fin' : ''}">
+        <div class="tHeroTx">
+          <div class="heroLbl">${eyebrow}</div>
+          <div class="heroNum tName">${esc(tp.name)}</div>
+          <div class="tFocus">${esc(tp.focus.charAt(0).toUpperCase() + tp.focus.slice(1))}</div>
+          <div class="tStats"><span><b class="num">${exs.length}</b> exercises</span><span><b class="num">${logged ? logged + '/' : ''}${nSets}</b> sets</span><span><b class="num">~${burn.cal}</b> cal</span></div>
+        </div>
+        <div class="tFigs">${bodySVG('front', mm, tIt.fin)}${bodySVG('back', mm, tIt.fin)}</div>
+      </section>
+      <button class="bigBtn" type="button" data-open="${tIt.n}">${btn}</button>`;
+  }
+  $('tBody').innerHTML = hero + `
     <section class="card cal">
       <div class="dow"><span>Sun</span><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span></div>
       <div class="grid">${cells}</div>
@@ -7548,6 +7622,8 @@ $('tBody').addEventListener('click', ev=>{
   const open = t.closest('.day[data-n], .wrow[data-n]');
   if(open){ openN = +open.dataset.n; renderTrain(); window.scrollTo(0,0); return; }
   if(t.closest('#tBack')){ openN = null; renderTrain(); window.scrollTo(0,0); return; }
+  const go = t.closest('.bigBtn[data-open]');
+  if(go){ openN = +go.dataset.open; renderTrain(); window.scrollTo(0,0); return; }
   if(t.closest('#startApply')){ const v = $('startDate').value; if(v){ state.train.start = v; state.train.notBefore = null; save(); renderTrain(); } return; }
   const rec = openN !== null && sessRec(openN); if(!rec) return;
   const chk = t.closest('.chk');
