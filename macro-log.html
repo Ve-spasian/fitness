@@ -346,6 +346,14 @@
   #tray .pv .qty,#tray .pv .usel{height:38px;font-size:16px;padding:0 8px}
   #tray .pv .pvcal{font-size:17px;text-align:right}
   #tray .pv .pvinfo{display:none}
+  /* ---------- expenditure ---------- */
+  .xpGrid{display:grid;grid-template-columns:1fr 1fr;gap:var(--s3);margin:var(--s2) 0}
+  .xpGrid small{display:block;font-family:var(--mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-3);margin-top:2px}
+  .xp .big{font-size:34px}
+  .xpCal{display:flex;align-items:center;gap:var(--s3);margin:var(--s2) 0}
+  .xpBar{flex:1;height:6px;border-radius:3px;background:var(--rule);overflow:hidden}
+  .xpBar i{display:block;height:100%;background:var(--action);border-radius:3px}
+  .xpCal span{font-family:var(--mono);font-size:12px;color:var(--ink-2);white-space:nowrap}
   /* ---------- ledger home ---------- */
   #nCal{margin-top:var(--s1)}
   .lgSec{margin:var(--s5) 0 0}
@@ -7753,10 +7761,52 @@ function backupCard(){
     <p class="status" id="bkMsg" role="status" aria-live="polite"></p></section>`;
 }
 
+// expenditure: over the last four weeks, what you ate minus what went into (or came out of) body weight.
+// weight slope is a straight-line fit through the weigh-ins, so one salty day doesn't swing it; ~3,500 cal per lb.
+// today is left out (still being logged), and days with almost nothing logged are skipped rather than read as fasting.
+function expenditure(){
+  const end = addDays(startOfToday(), -1), start = addDays(end, -27);
+  const ws = Object.keys(state.body).sort().map(k => ({d:pd(k), v:+state.body[k].w})).filter(p => p.v && p.d >= start && p.d <= end);
+  const eats = [];
+  for(let d = new Date(start); d <= end; d = addDays(d, 1)){
+    const l = state.days[dkey(d)]; if(!l || !l.length) continue;
+    const c = totals(l).cal; if(c >= 800) eats.push(c);
+  }
+  const span = ws.length >= 2 ? Math.round((ws[ws.length-1].d - ws[0].d)/864e5) : 0;
+  const need = {days: Math.max(0, 14 - eats.length), weighins: Math.max(0, 6 - ws.length), span: Math.max(0, 14 - span)};
+  if(need.days || need.weighins || need.span) return {ready:false, need, eats:eats.length, ws:ws.length};
+  const x = ws.map(p => (p.d - ws[0].d)/864e5), y = ws.map(p => p.v);
+  const mx = x.reduce((a,b)=>a+b,0)/x.length, my = y.reduce((a,b)=>a+b,0)/y.length;
+  const slope = x.reduce((a,xi,i)=>a + (xi-mx)*(y[i]-my), 0) / x.reduce((a,xi)=>a + (xi-mx)**2, 0);   // lb per day
+  const intake = eats.reduce((a,b)=>a+b,0)/eats.length;
+  return {ready:true, tdee: Math.round((intake - slope*3500)/10)*10, week: slope*7, intake: Math.round(intake), days: eats.length, ws: ws.length};
+}
+function expenditureCard(){
+  const x = expenditure();
+  if(!x.ready){
+    const left = Math.max(x.need.days, x.need.span);
+    const bits = [];
+    if(x.need.days) bits.push(`${x.need.days} more ${x.need.days === 1 ? 'day' : 'days'} of logged food`);
+    if(x.need.weighins) bits.push(`${x.need.weighins} more ${x.need.weighins === 1 ? 'weigh-in' : 'weigh-ins'}`);
+    if(!x.need.days && x.need.span) bits.push(`weigh-ins spread over ${x.need.span} more days`);
+    return `<section class="card xp"><h2>Expenditure</h2>
+      <div class="xpCal"><div class="xpBar"><i style="width:${Math.round(100*(1 - left/14))}%"></i></div><span class="num">${left ? left + (left === 1 ? ' day' : ' days') + ' to go' : 'almost there'}</span></div>
+      <p class="muted">Calibrating. It needs ${bits.join(' and ')} in the last four weeks to read what you burn from what you eat and how your weight moves.</p></section>`;
+  }
+  const w = x.week, steady = Math.abs(w) < 0.1;
+  const rate = steady ? '0.0' : (w < 0 ? '\u2212' : '+') + Math.abs(w).toFixed(1);
+  return `<section class="card xp"><h2>Expenditure</h2>
+    <div class="xpGrid">
+      <div><div class="big num">${x.tdee.toLocaleString()}<span class="unit">cal</span></div><small>burned a day</small></div>
+      <div><div class="big num">${rate}<span class="unit">lb/wk</span></div><small>${steady ? 'holding steady' : w < 0 ? 'average loss' : 'average gain'}</small></div>
+    </div>
+    <p class="muted">From the last four weeks: ${x.days} days of food averaging ${x.intake.toLocaleString()} cal, and ${x.ws} weigh-ins.</p></section>`;
+}
+
 function renderProgress(){
   const s = bodySeries();
   const range = `<div class="range">${RANGES.map(([d,l])=>`<button type="button" data-r="${d}" class="${d === pRange ? 'on' : ''}">${l}</button>`).join('')}</div>`;
-  $('pBody').innerHTML = range +
+  $('pBody').innerHTML = expenditureCard() + range +
     measureCard('Weight', s.w, 'lb', {empty:'Log your weight in the nutrition tab and a line starts here after the second entry.'}) +
     measureCard('Waist', s.wa, 'in', {minSpan:1, empty:'Log your waist in the nutrition tab to start this line.'}) +
     measureCard('Body fat estimate', s.bf, '%', {minSpan:2, empty:'Log your weight and your waist, and an estimate appears here.',
