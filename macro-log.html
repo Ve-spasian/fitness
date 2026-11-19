@@ -187,10 +187,12 @@
   .entry.swiped .t,.entry.swiped .r{transform:translateX(-100px)}
   .entry.editing .t b{color:var(--action)}
   .eEdit{padding:var(--s1) 0 var(--s3)}
-  .eGrid{display:grid;grid-template-columns:1.2fr 1fr 1fr;gap:var(--s2)}
+  .eGrid{display:grid;grid-template-columns:1fr 1fr;gap:var(--s2)}
   .eGrid .full{grid-column:1/-1}
   .eAmt{display:flex;align-items:center;gap:6px}
   .eAmt input{min-width:0}
+  .eAmt .eQ{flex:0 0 72px}
+  .eAmt .eU{flex:1;min-width:0}
   .eAmt span{color:var(--ink-2);font-size:14px;white-space:nowrap}
   .bodyHead{display:flex;align-items:center;justify-content:space-between;gap:var(--s3);margin-bottom:var(--s3)}
   .bodyHead h2{margin:0}
@@ -1048,11 +1050,35 @@ function entryAmt(e){
   return {nm:e.name || 'Food', q:1, u:'×', lab:false};
 }
 let editAt = null;
-function editHTML(e, i){
+// the food an entry came from, so its amount can be re-measured in any unit
+function entryFood(e){
+  if(!e || e.bid) return null;
+  const nm = entryAmt(e).nm.toLowerCase();
+  return customFoods().find(f => f.name.toLowerCase() === nm) || DB.find(f => f.name.toLowerCase() === nm) || null;
+}
+// the food's own units first (each, tbsp, cup...), then weights
+const unitOrder = f => { const U = unitsFor(f), own = Object.keys(f.units || {}).filter(u => !G[u] && u !== 'serving').concat(U.serving ? ['serving'] : []); return own.concat(Object.keys(U).filter(u => !own.includes(u))); };
+function entryUnit(e, f){
+  const a = entryAmt(e), U = unitsFor(f);
+  if(a.u === '×') return U.each ? 'each' : (f.def && U[f.def] ? f.def : 'serving');
+  return U[a.u] ? a.u : null;
+}
+// amount or unit changed in the editor: recount from the food when we know it, else scale what was logged
+function recalcEdit(box, e){
+  const q2 = parseFloat(box.querySelector('.eQ').value); if(!(q2 > 0)) return;
+  const sel = box.querySelector('.eU'), f = sel && entryFood(e);
+  if(f){ const r = resolve(f, q2, sel.value); box.querySelector('.eCal').value = Math.round(r.cal); box.querySelector('.ePro').value = r1(r.pro); return; }
   const a = entryAmt(e);
+  box.querySelector('.eCal').value = Math.round(e.cal*q2/a.q);
+  box.querySelector('.ePro').value = r1(e.pro*q2/a.q);
+}
+function editHTML(e, i){
+  const a = entryAmt(e), f0 = entryFood(e), fu = f0 && entryUnit(e, f0), f = fu ? f0 : null;
   return `<div class="eEdit" data-i="${i}"><div class="eGrid">
     <div class="full"><label class="f">Name</label><input class="eName" value="${esc(a.nm)}" autocomplete="off"></div>
-    <div><label class="f">Amount</label><div class="eAmt">${a.u === '×' ? '<span>×</span>' : ''}<input class="eQ" type="number" inputmode="decimal" step="any" min="0" value="${fmtQ(a.q)}">${a.u !== '×' ? `<span>${esc(a.u)}</span>` : ''}</div></div>
+    <div class="full"><label class="f">Amount</label><div class="eAmt">${!f && a.u === '×' ? '<span>×</span>' : ''}<input class="eQ" type="number" inputmode="decimal" step="any" min="0" value="${fmtQ(a.q)}">${f
+      ? `<select class="eU" aria-label="Unit">${unitOrder(f).map(u => `<option value="${esc(u)}" ${u === fu ? 'selected' : ''}>${esc(u === 'serving' ? 'serving (' + servLabel(f) + ')' : u)}</option>`).join('')}</select>`
+      : a.u !== '×' ? `<span>${esc(a.u)}</span>` : ''}</div></div>
     <div><label class="f">Calories</label><input class="eCal" type="number" inputmode="numeric" min="0" value="${Math.round(e.cal)}"></div>
     <div><label class="f">Protein g</label><input class="ePro" type="number" inputmode="decimal" min="0" step="any" value="${r1(e.pro)}"></div>
   </div><div class="btnRow"><button class="primary eSave" type="button">Save</button><button class="tool eCancel" type="button">Cancel</button></div></div>`;
@@ -1063,10 +1089,15 @@ function saveEdit(box, list){
   const k = q2 > 0 ? q2 / a.q : 1;
   const cal = parseFloat(box.querySelector('.eCal').value), pro = parseFloat(box.querySelector('.ePro').value);
   const nm = box.querySelector('.eName').value.trim() || a.nm, q = q2 > 0 ? q2 : a.q;
-  e.name = (a.lab || q !== 1) ? `${nm} (${amtLabel(q, a.u)})` : nm;
+  const sel = box.querySelector('.eU'), f = sel && entryFood(e), u = sel ? (sel.value === 'each' ? '×' : sel.value) : a.u;
+  e.name = (a.lab || q !== 1 || sel) ? `${nm} (${amtLabel(q, u)})` : nm;
+  if(f){ const r = resolve(f, q, sel.value); e.carb = r1(r.carb); e.fat = r1(r.fat);
+    e.cal = isNaN(cal) ? Math.round(r.cal) : Math.round(cal); e.pro = isNaN(pro) ? r1(r.pro) : r1(pro); }
+  else {
   e.cal = isNaN(cal) ? Math.round(e.cal*k) : Math.round(cal);
   e.pro = isNaN(pro) ? r1(e.pro*k) : r1(pro);
   e.carb = r1(e.carb*k); e.fat = r1(e.fat*k);
+  }
   if(e.bf) e.bf = e.bf*k;
   editAt = null; lEdit = null; save(); render(); if(!$('viewL').hidden) renderLog();
 }
@@ -1114,13 +1145,10 @@ $('list').onclick = ev => {
   if(editAt){ const q = $('list').querySelector('.eQ'); if(q) q.closest('.eEdit').scrollIntoView({block:'nearest', behavior:'smooth'}); }
 };
 // changing the amount rescales calories and protein; either can still be typed over
-$('list').addEventListener('input', ev=>{
-  if(!ev.target.classList.contains('eQ')) return;
-  const box = ev.target.closest('.eEdit'), e = dayList()[+box.dataset.i], a = entryAmt(e), q2 = parseFloat(ev.target.value);
-  if(!(q2 > 0)) return;
-  box.querySelector('.eCal').value = Math.round(e.cal*q2/a.q);
-  box.querySelector('.ePro').value = r1(e.pro*q2/a.q);
-});
+['input','change'].forEach(t => $('list').addEventListener(t, ev=>{
+  if(!ev.target.classList.contains('eQ') && !ev.target.classList.contains('eU')) return;
+  const box = ev.target.closest('.eEdit'); recalcEdit(box, dayList()[+box.dataset.i]);
+}));
 $('list').addEventListener('keydown', ev=>{ if(ev.key === 'Enter' && ev.target.closest('.eEdit')){ ev.preventDefault(); saveEdit(ev.target.closest('.eEdit')); } });
 $('recent').onclick = ev => {
   const b = ev.target.closest('[data-r]'); if(!b) return;
@@ -1247,13 +1275,10 @@ $('lBody').addEventListener('click', ev => {
   const r = ev.target.closest('.tlRow'); if(!r) return;
   lEdit = lEdit === +r.dataset.i ? null : +r.dataset.i; renderLog();
 });
-$('lBody').addEventListener('input', ev => {
-  if(!ev.target.classList.contains('eQ')) return;
-  const box = ev.target.closest('.eEdit'), e = (state.days[dkey(lDate)] || [])[+box.dataset.i], a = entryAmt(e), q2 = parseFloat(ev.target.value);
-  if(!(q2 > 0)) return;
-  box.querySelector('.eCal').value = Math.round(e.cal*q2/a.q);
-  box.querySelector('.ePro').value = r1(e.pro*q2/a.q);
-});
+['input','change'].forEach(t => $('lBody').addEventListener(t, ev => {
+  if(!ev.target.classList.contains('eQ') && !ev.target.classList.contains('eU')) return;
+  const box = ev.target.closest('.eEdit'); recalcEdit(box, (state.days[dkey(lDate)] || [])[+box.dataset.i]);
+}));
 $('lBody').addEventListener('keydown', ev => { if(ev.key === 'Enter' && ev.target.closest('.eEdit')){ ev.preventDefault(); saveEdit(ev.target.closest('.eEdit'), state.days[dkey(lDate)] || []); } });
 $('tabL').onclick = () => { lDate = new Date(); lEdit = null; showTab('l'); };
 
