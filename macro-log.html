@@ -1366,9 +1366,10 @@ document.addEventListener('touchmove', ev => { if(sheetOpen && !$('tray').contai
 // pulling down: first it puts the keyboard away (full list), then, from the top of the list, it closes the screen
 const c0 = $('composer');
 function pullTo(px){ c0.style.transition = 'none'; c0.style.transform = `translateY(${Math.max(0, px)}px)`; }
-function pullEnd(px){
+// a long pull or a quick flick closes it (the bar sits low, so there's little room to drag from there)
+function pullEnd(px, vel, low){
   c0.style.transition = 'transform .24s cubic-bezier(.2,.8,.2,1)';
-  if(px > 110){ c0.style.transform = 'translateY(100%)'; setTimeout(() => { c0.style.transition = ''; closeSheet(); }, 220); }
+  if(px > (low ? 36 : 110) || (px > 24 && vel > .3)){ c0.style.transform = 'translateY(100%)'; setTimeout(() => { c0.style.transition = ''; closeSheet(); }, 220); }
   else { c0.style.transform = ''; setTimeout(() => { c0.style.transition = ''; }, 260); }
 }
 (function(){
@@ -1385,13 +1386,13 @@ function pullEnd(px){
       if(mode === 'kb'){ $('q').blur(); return; }
     }
     if(mode === 'kb') return;
-    if(mode === 'pull'){ pullTo(total * .85); last = cy; return; }
+    if(mode === 'pull'){ pullTo(total * .85); const dt = Math.max(1, ev.timeStamp - lt); v = .8 * (dy / dt) + .2 * v; last = cy; lt = ev.timeStamp; return; }
     t.scrollTop -= dy;
     const dt = Math.max(1, ev.timeStamp - lt); v = .8 * (dy / dt) + .2 * v; last = cy; lt = ev.timeStamp;
   }, {passive:false});
   t.addEventListener('touchend', ev => {
     if(!moved) return;
-    if(mode === 'pull'){ pullEnd((last - y) * .85); return; }
+    if(mode === 'pull'){ pullEnd((last - y) * .85, v); return; }
     if(mode !== 'scroll') return;
     let vel = v * 16;   // px per frame
     const glide = () => { if(Math.abs(vel) < .4) return; t.scrollTop -= vel; vel *= .95; raf = requestAnimationFrame(glide); };
@@ -1400,13 +1401,22 @@ function pullEnd(px){
   // a drag ends with a click on whatever row is under the finger; swallow it
   t.addEventListener('click', ev => { if(moved){ ev.stopPropagation(); ev.preventDefault(); moved = false; } }, true);
 })();
-// the header and the tool row pull too
+// the header, the tool row and the search bar (and the strip under it) pull too: a pull while typing
+// puts the keyboard away, a pull without it closes the screen
 (function(){
-  let y = null, d = 0;
-  [document.querySelector('.shHead'), document.querySelector('.shTools')].forEach(el => {
-    el.addEventListener('touchstart', ev => { if(ev.target.closest('button')) { y = null; return; } y = ev.touches[0].clientY; d = 0; }, {passive:true});
-    el.addEventListener('touchmove', ev => { if(y === null) return; d = ev.touches[0].clientY - y; if(d > 0){ if(document.activeElement === $('q')) $('q').blur(); pullTo(d * .85); } }, {passive:true});
-    el.addEventListener('touchend', () => { if(y === null) return; y = null; if(d > 0) pullEnd(d * .85); });
+  let y = null, d = 0, kb = false, t0 = 0, ly = 0, lt = 0, v = 0;
+  [document.querySelector('.shHead'), document.querySelector('.shTools'), document.querySelector('#composer .bar')].forEach(el => {
+    el.addEventListener('touchstart', ev => { if(ev.target.closest('button')){ y = null; return; } y = ly = ev.touches[0].clientY; lt = ev.timeStamp; v = 0; d = 0; kb = document.activeElement === $('q'); }, {passive:true});
+    el.addEventListener('touchmove', ev => {
+      if(y === null) return;
+      const cy = ev.touches[0].clientY; d = cy - y;
+      const dt = Math.max(1, ev.timeStamp - lt); v = .8 * ((cy - ly) / dt) + .2 * v; ly = cy; lt = ev.timeStamp;
+      if(d < 8) return;
+      if(kb){ $('q').blur(); y = null; return; }
+      pullTo((d - 8) * .85);
+    }, {passive:true});
+    const end = () => { if(y === null) return; y = null; if(d >= 8) pullEnd((d - 8) * .85, v, el.classList.contains('bar')); };
+    el.addEventListener('touchend', end); el.addEventListener('touchcancel', end);
   });
 })();
 $('goBtn').addEventListener('click', () => { $('addAll').click(); closeSheet(); });
