@@ -1317,7 +1317,7 @@ function openSheet(){
   document.documentElement.classList.add('sheet');
   // pin the page underneath so only the log screen scrolls
   lockY = window.scrollY; Object.assign(document.body.style, {position:'fixed', top:-lockY + 'px', left:'0', right:'0'});
-  const c = $('composer'); c.hidden = false; c.classList.add('in');
+  const c = $('composer'); c.style.transform = ''; c.style.transition = ''; c.hidden = false; c.classList.add('in');
   $('q').focus();   // in the same tap, so iOS raises the keyboard
   c.getBoundingClientRect(); c.classList.remove('in');
   trayUpdate(); trackKeyboard();
@@ -1325,10 +1325,10 @@ function openSheet(){
 function closeSheet(){
   if(!sheetOpen) return;
   sheetOpen = false; $('q').blur(); trayClose();
-  const c = $('composer'); c.classList.remove('drag'); c.style.transform = ''; c.classList.add('in');
+  const c = $('composer'); c.classList.remove('drag'); c.classList.add('in');
   document.documentElement.classList.remove('sheet');
   Object.assign(document.body.style, {position:'', top:'', left:'', right:'', overflow:''}); window.scrollTo(0, lockY);
-  setTimeout(() => { if(!sheetOpen){ c.hidden = true; c.classList.remove('in'); } }, 320);
+  setTimeout(() => { if(!sheetOpen){ c.hidden = true; c.classList.remove('in'); c.style.transform = ''; c.style.transition = ''; } }, 320);
 }
 $('logBtn').addEventListener('click', openSheet);
 $('shClose').addEventListener('click', closeSheet);
@@ -1363,25 +1363,51 @@ $('composer').addEventListener('touchend', ev => {
 // and in the home screen app iOS won't hand that drag to the list while the keyboard is up, so the list is
 // scrolled by hand here: follow the finger, then glide to a stop. a drag never counts as a tap on a food.
 document.addEventListener('touchmove', ev => { if(sheetOpen && !$('tray').contains(ev.target)) ev.preventDefault(); }, {passive:false});
+// pulling down: first it puts the keyboard away (full list), then, from the top of the list, it closes the screen
+const c0 = $('composer');
+function pullTo(px){ c0.style.transition = 'none'; c0.style.transform = `translateY(${Math.max(0, px)}px)`; }
+function pullEnd(px){
+  c0.style.transition = 'transform .24s cubic-bezier(.2,.8,.2,1)';
+  if(px > 110){ c0.style.transform = 'translateY(100%)'; setTimeout(() => { c0.style.transition = ''; closeSheet(); }, 220); }
+  else { c0.style.transform = ''; setTimeout(() => { c0.style.transition = ''; }, 260); }
+}
 (function(){
-  const t = $('tray'); let y = 0, last = 0, lt = 0, v = 0, moved = false, raf = 0;
-  t.addEventListener('touchstart', ev => { cancelAnimationFrame(raf); y = last = ev.touches[0].clientY; lt = ev.timeStamp; v = 0; moved = false; trayDragged = false; }, {passive:true});
+  const t = $('tray'); let y = 0, last = 0, lt = 0, v = 0, moved = false, raf = 0, mode = null;
+  t.addEventListener('touchstart', ev => { cancelAnimationFrame(raf); y = last = ev.touches[0].clientY; lt = ev.timeStamp; v = 0; moved = false; mode = null; trayDragged = false; }, {passive:true});
   t.addEventListener('touchmove', ev => {
     if(ev.touches.length > 1) return;
-    const cy = ev.touches[0].clientY, dy = cy - last;
-    if(!moved && Math.abs(cy - y) < 6) return;
+    const cy = ev.touches[0].clientY, dy = cy - last, total = cy - y;
+    if(!moved && Math.abs(total) < 6) return;
     moved = true; trayDragged = true; ev.preventDefault();
+    if(!mode){
+      const typing = document.activeElement === $('q');
+      mode = total > 0 && typing ? 'kb' : total > 0 && t.scrollTop <= 0 ? 'pull' : 'scroll';
+      if(mode === 'kb'){ $('q').blur(); return; }
+    }
+    if(mode === 'kb') return;
+    if(mode === 'pull'){ pullTo(total * .85); last = cy; return; }
     t.scrollTop -= dy;
     const dt = Math.max(1, ev.timeStamp - lt); v = .8 * (dy / dt) + .2 * v; last = cy; lt = ev.timeStamp;
   }, {passive:false});
-  t.addEventListener('touchend', () => {
+  t.addEventListener('touchend', ev => {
     if(!moved) return;
+    if(mode === 'pull'){ pullEnd((last - y) * .85); return; }
+    if(mode !== 'scroll') return;
     let vel = v * 16;   // px per frame
     const glide = () => { if(Math.abs(vel) < .4) return; t.scrollTop -= vel; vel *= .95; raf = requestAnimationFrame(glide); };
     raf = requestAnimationFrame(glide);
   });
   // a drag ends with a click on whatever row is under the finger; swallow it
   t.addEventListener('click', ev => { if(moved){ ev.stopPropagation(); ev.preventDefault(); moved = false; } }, true);
+})();
+// the header and the tool row pull too
+(function(){
+  let y = null, d = 0;
+  [document.querySelector('.shHead'), document.querySelector('.shTools')].forEach(el => {
+    el.addEventListener('touchstart', ev => { if(ev.target.closest('button')) { y = null; return; } y = ev.touches[0].clientY; d = 0; }, {passive:true});
+    el.addEventListener('touchmove', ev => { if(y === null) return; d = ev.touches[0].clientY - y; if(d > 0){ if(document.activeElement === $('q')) $('q').blur(); pullTo(d * .85); } }, {passive:true});
+    el.addEventListener('touchend', () => { if(y === null) return; y = null; if(d > 0) pullEnd(d * .85); });
+  });
 })();
 $('goBtn').addEventListener('click', () => { $('addAll').click(); closeSheet(); });
 
