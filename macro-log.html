@@ -6713,8 +6713,10 @@ function wirePreview(el, getRows, redraw){
   });
 }
 function renderPreview(){
-  const out = previewHTML(rows);
-  $('preview').innerHTML = out.html;
+  // while suggestions float for the item being typed, that item waits for a tap instead of being picked for you
+  const pending = !$('suggest').hidden && currentFragment().frag.trim() && rows.length;
+  const out = previewHTML(rows), shown = pending ? previewHTML(rows.slice(0, -1)) : out;
+  $('preview').innerHTML = shown.html;
   const b = $('addAll'), n = out.n, tot = out.tot;
   b.hidden = !n;
   b.textContent = `Add ${n} item${n>1?'s':''} to the log (${Math.round(tot)} cal)`;
@@ -6740,7 +6742,7 @@ function previewHTML(rows){
   return {html, tot, n};
 }
 
-$('q').addEventListener('input', () => { parseAll(); suggestFoods(); });
+$('q').addEventListener('input', () => { suggestFoods(); parseAll(); });
 // suggest foods for the item being typed; tapping one fills it in and starts the next item
 let suggestions = [];
 function currentFragment(){
@@ -6750,8 +6752,6 @@ function currentFragment(){
 function suggestFoods(){
   const {frag} = currentFragment(), p = parseItem(frag.trim()), box = $('suggest');
   suggestions = p.name && p.name.replace(/[^a-z]/gi,'').length >= 2 ? search(p.name, 6) : [];
-  // nothing to suggest once the item already names its food exactly
-  if(suggestions.length && tok(suggestions[0].name).join(' ') === tok(p.name).join(' ')) suggestions = [];
   box.hidden = !suggestions.length;
   box.innerHTML = suggestions.map((f,i) => `<button type="button" class="sRow" data-s="${i}"><span class="icoTile">${icoImg(iconFor({name:f.name}))}</span><span>${esc(f.name)}</span><small>${Math.round(resolve(f,1,null).cal)} / ${resolve(f,1,null).u}</small></button>`).join('');
   trayUpdate();
@@ -6762,7 +6762,7 @@ $('suggest').addEventListener('click', ev => {
   const amt = (p.qty !== 1 || p.unit) ? `${Math.round(p.qty*100)/100}${p.unit ? ' ' + p.unit : ''} ` : '';
   const lead = before ? (before.endsWith(' ') ? before : before + ' ') : '';
   $('q').value = lead + amt + f.name.replace(/[,;+]/g, '') + ', ';
-  parseAll(); suggestFoods();
+  suggestFoods(); parseAll();
   $('q').focus(); const n = $('q').value.length; $('q').setSelectionRange(n, n);
 });
 $('q').addEventListener('keydown', ev=>{
