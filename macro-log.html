@@ -1367,11 +1367,24 @@ $('saveBody').onclick = () => {
 
 const DB = [];
 // names (first is display, rest are aliases), then per 100 g: cal, protein, carbs, fat, then unit sizes in grams
+// a serving is the food's natural unit (1 tbsp of oil, 1 cup of rice, one egg), not 100 g.
+// foods listed with no units are meat, fish and the like, so a serving is 4 oz.
+const SERVING_G = {'Pasta, dry':56, 'Beef jerky':28, 'Smoked salmon':56, 'French fries':117, 'Tempeh':84};
+function servingOf(name, u){
+  if(u.serving) return u.serving;
+  if(SERVING_G[name]) return SERVING_G[name];
+  if(u.each) return u.each;
+  const k = Object.keys(u)[0];
+  return k ? u[k] : 113;
+}
+// with no unit typed, use the one people think in: one egg, a tbsp of oil, a cup of rice, else a serving
+const defUnit = (name, u) => u.each ? 'each' : (u.serving || SERVING_G[name] || !Object.keys(u).length) ? 'serving' : Object.keys(u)[0];
+const servLabel = f => { const g = unitsFor(f).serving; return Math.abs(g - 113) < 1 ? '4 oz' : Math.round(g) + ' g'; };
 function F(names,cal,pro,carb,fat,units){
   const ns = names.split('|'), all = new Set();
   ns.forEach(n=>tok(n).forEach(t=>all.add(t)));
-  DB.push({name:ns[0], per:{cal,pro,carb,fat}, units:Object.assign({serving:100},units||{}),
-    tokens:all, nameTokens:new Set(tok(ns[0])), phrases:ns.map(n=>tok(n).join(' '))});
+  DB.push({name:ns[0], per:{cal,pro,carb,fat}, units:Object.assign({serving:servingOf(ns[0], units || {})},units||{}),
+    def:defUnit(ns[0], units || {}), tokens:all, nameTokens:new Set(tok(ns[0])), phrases:ns.map(n=>tok(n).join(' '))});
 }
 // legumes
 F('Pinto beans, cooked|pinto beans|pintos',143,9,26.2,0.65,{cup:171,can:255});
@@ -6768,8 +6781,9 @@ function parseItem(raw){
 function resolve(f, qty, unit){
   const U = unitsFor(f);
   let u = unit, warn = false;
-  if(!u) u = U.each ? 'each' : 'serving';
-  else if(!U[u]){ warn = true; u = U.each ? 'each' : 'serving'; }
+  const d = f.def && U[f.def] ? f.def : U.each ? 'each' : 'serving';
+  if(!u) u = d;
+  else if(!U[u]){ warn = true; u = d; }
   const k = qty*U[u]/100;
   return {u, warn, cal:f.per.cal*k, pro:f.per.pro*k, carb:f.per.carb*k, fat:f.per.fat*k};
 }
@@ -6848,7 +6862,7 @@ function suggestFoods(){
   const {frag} = currentFragment(), p = parseItem(frag.trim()), box = $('suggest');
   suggestions = p.name && p.name.replace(/[^a-z]/gi,'').length >= 2 ? search(p.name, 6) : [];
   box.hidden = !suggestions.length;
-  box.innerHTML = suggestions.map((f,i) => `<button type="button" class="sRow" data-s="${i}"><span class="icoTile">${icoImg(iconFor({name:f.name}))}</span><span>${esc(f.name)}</span><small>${Math.round(resolve(f,1,null).cal)} / ${resolve(f,1,null).u}</small></button>`).join('');
+  box.innerHTML = suggestions.map((f,i) => `<button type="button" class="sRow" data-s="${i}"><span class="icoTile">${icoImg(iconFor({name:f.name}))}</span><span>${esc(f.name)}</span><small>${Math.round(resolve(f,1,null).cal)} / ${resolve(f,1,null).u === 'serving' ? servLabel(f) : resolve(f,1,null).u}</small></button>`).join('');
   trayUpdate();
 }
 $('suggest').addEventListener('click', ev => {
