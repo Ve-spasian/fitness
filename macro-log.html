@@ -309,12 +309,15 @@
     box-shadow:0 8px 24px rgba(0,0,0,.35);transition:transform .15s var(--ease)}
   #logBtn span{font-family:var(--mono);font-size:20px;font-weight:700;line-height:1}
   #logBtn:active{transform:scale(.98)}
+  #logBtn{display:none} html.onL #logBtn{display:flex}
   html.sheet #logBtn{visibility:hidden}
   html.sheet .tabs{display:none}
   #composer{position:fixed;left:0;right:0;top:0;height:100vh;z-index:18;background:var(--ground);display:flex;flex-direction:column;
     padding:calc(env(safe-area-inset-top,0px) + 6px) max(var(--s3), calc((100vw - 520px)/2 + var(--s3))) 0;
     transform:translateY(0);transition:transform .32s cubic-bezier(.2,.8,.2,1)}
   #composer[hidden]{display:none}
+  /* backing below the screen, so the page can never show between it and the keyboard */
+  #composer::after{content:"";position:absolute;left:0;right:0;top:100%;height:100vh;background:var(--ground)}
   #composer.in{transform:translateY(100%)}
   #composer.drag{transition:none}
   .shHead{display:grid;grid-template-columns:44px 1fr auto;align-items:center;gap:var(--s2);min-height:52px;touch-action:none}
@@ -663,46 +666,6 @@
     </div>
   </section>
 
-    <!-- logging lives on its own screen: a white button above the tab bar opens it -->
-    <button id="logBtn" type="button"><span aria-hidden="true">+</span> Log food</button>
-    <div id="composer" hidden role="dialog" aria-modal="true" aria-label="Log food">
-      <div class="shHead">
-        <button class="shX" id="shClose" type="button" aria-label="Close">×</button>
-        <div class="shT"><b>Log food</b><span id="shDay"></span></div>
-        <span class="shTot num" id="shTot"></span>
-      </div>
-      <div class="shTools">
-        <button class="chipB" id="batchBtn" type="button">Batch</button>
-        <button class="chipB" id="moreBtn" type="button" aria-expanded="false">Custom food</button>
-      </div>
-      <div id="tray">
-        <div id="recentPanel" hidden><div class="trayLbl">Recent</div><div class="sList" id="recent" aria-label="Recent foods"></div></div>
-        <div id="preview"></div>
-        <div class="sList" id="suggest" aria-label="Suggestions" hidden></div>
-        <button class="primary" id="addAll" hidden aria-hidden="true" tabindex="-1" style="display:none"></button>
-        <div id="morePanel" hidden>
-          <details class="custom" open>
-      <summary>Add a custom food</summary>
-      <div class="form">
-        <div class="name"><label class="f" for="fName">Food</label><input id="fName" autocomplete="off"></div>
-        <div><label class="f" for="fCal">Calories</label><input id="fCal" type="number" inputmode="numeric" min="0"></div>
-        <div><label class="f" for="fPro">Protein g</label><input id="fPro" type="number" inputmode="decimal" min="0"></div>
-        <div hidden><label class="f" for="fCarb">Carbs g</label><input id="fCarb" type="number" inputmode="decimal" min="0"></div>
-        <div hidden><label class="f" for="fFat">Fat g</label><input id="fFat" type="number" inputmode="decimal" min="0"></div>
-        <div class="name"><label class="f">Icon</label><div class="icoPick" id="fIcon" role="radiogroup" aria-label="Icon"></div></div>
-        <label class="save"><input type="checkbox" id="fSave"><span>Keep this food so it comes up when I search by name. The values above are treated as one serving.</span></label>
-      </div>
-      <button class="primary" id="add">Add to the log</button>
-    </details>
-        </div>
-        <p class="status" id="toolMsg" role="status" aria-live="polite"></p>
-      </div>
-      <div class="bar">
-        <button class="barBtn" id="scanBtn" type="button" aria-label="Scan a barcode"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 5v14M8 5v14M12 5v14M16 5v9M20 5v14M16 18v1"/></svg></button>
-        <input id="q" type="text" placeholder="What did you eat?" aria-label="What did you eat" autocomplete="off" enterkeyhint="done">
-        <button class="barBtn go" id="goBtn" type="button" aria-label="Add to the log" disabled>✓</button>
-      </div>
-    </div>
   </div>
 
   <div id="viewT" hidden>
@@ -759,6 +722,46 @@
   </button>
 </nav>
 
+    <!-- logging lives on its own screen: a white button above the tab bar opens it -->
+<button id="logBtn" type="button"><span aria-hidden="true">+</span> Log food</button>
+<div id="composer" hidden role="dialog" aria-modal="true" aria-label="Log food">
+  <div class="shHead">
+    <button class="shX" id="shClose" type="button" aria-label="Close">×</button>
+    <div class="shT"><b>Log food</b><span id="shDay"></span></div>
+    <span class="shTot num" id="shTot"></span>
+  </div>
+  <div class="shTools">
+    <button class="chipB" id="batchBtn" type="button">Batch</button>
+    <button class="chipB" id="moreBtn" type="button" aria-expanded="false">Custom food</button>
+  </div>
+  <div id="tray">
+    <div id="recentPanel" hidden><div class="trayLbl">Recent</div><div class="sList" id="recent" aria-label="Recent foods"></div></div>
+    <div id="preview"></div>
+    <div class="sList" id="suggest" aria-label="Suggestions" hidden></div>
+    <button class="primary" id="addAll" hidden aria-hidden="true" tabindex="-1" style="display:none"></button>
+    <div id="morePanel" hidden>
+      <details class="custom" open>
+  <summary>Add a custom food</summary>
+  <div class="form">
+    <div class="name"><label class="f" for="fName">Food</label><input id="fName" autocomplete="off"></div>
+    <div><label class="f" for="fCal">Calories</label><input id="fCal" type="number" inputmode="numeric" min="0"></div>
+    <div><label class="f" for="fPro">Protein g</label><input id="fPro" type="number" inputmode="decimal" min="0"></div>
+    <div hidden><label class="f" for="fCarb">Carbs g</label><input id="fCarb" type="number" inputmode="decimal" min="0"></div>
+    <div hidden><label class="f" for="fFat">Fat g</label><input id="fFat" type="number" inputmode="decimal" min="0"></div>
+    <div class="name"><label class="f">Icon</label><div class="icoPick" id="fIcon" role="radiogroup" aria-label="Icon"></div></div>
+    <label class="save"><input type="checkbox" id="fSave"><span>Keep this food so it comes up when I search by name. The values above are treated as one serving.</span></label>
+  </div>
+  <button class="primary" id="add">Add to the log</button>
+</details>
+    </div>
+    <p class="status" id="toolMsg" role="status" aria-live="polite"></p>
+  </div>
+  <div class="bar">
+    <button class="barBtn" id="scanBtn" type="button" aria-label="Scan a barcode"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 5v14M8 5v14M12 5v14M16 5v9M20 5v14M16 18v1"/></svg></button>
+    <input id="q" type="text" placeholder="What did you eat?" aria-label="What did you eat" autocomplete="off" enterkeyhint="done">
+    <button class="barBtn go" id="goBtn" type="button" aria-label="Add to the log" disabled>✓</button>
+  </div>
+</div>
 <div class="modal" id="howModal" hidden>
   <div class="sheet howSheet" role="dialog" aria-modal="true" aria-labelledby="howTitle">
     <div class="sheetHead"><h2 id="howTitle"></h2><button class="x" id="howClose" aria-label="Close">×</button></div>
@@ -966,7 +969,8 @@ function paintSky(){
   const r = document.documentElement.style;
   r.setProperty('--sky1', `rgba(${P[0]},${(P[1]*a).toFixed(2)})`); r.setProperty('--sky2', `rgba(${P[2]},${(P[3]*a).toFixed(2)})`);
 }
-function openNDay(d){ lDate = new Date(d.getFullYear(), d.getMonth(), d.getDate()); lEdit = null; showTab('l'); window.__tabI = 1; }
+function openNDay(d){ if(d > new Date()) return;   // no logging food on days that haven't happened
+  lDate = new Date(d.getFullYear(), d.getMonth(), d.getDate()); lEdit = null; showTab('l'); window.__tabI = 1; }
 function closeNDay(){ editAt = null; lgCascade = true; showTab('n'); window.__tabI = 0; }
 
 function render(){
@@ -1317,7 +1321,7 @@ function openSheet(){
   const c = $('composer'); c.hidden = false; c.classList.add('in');
   $('q').focus();   // in the same tap, so iOS raises the keyboard
   c.getBoundingClientRect(); c.classList.remove('in');
-  trayUpdate(); placeComposer();
+  trayUpdate(); trackKeyboard();
 }
 function closeSheet(){
   if(!sheetOpen) return;
@@ -1342,8 +1346,10 @@ function placeComposer(){
   c.style.top = (vv ? vv.offsetTop : 0) + 'px';
 }
 if(window.visualViewport){ visualViewport.addEventListener('resize', placeComposer); visualViewport.addEventListener('scroll', placeComposer); }
-$('q').addEventListener('focus', () => setTimeout(placeComposer, 50));
-$('q').addEventListener('blur', () => setTimeout(placeComposer, 50));
+// iOS slides the keyboard in over ~half a second and doesn't always report the last step, so follow it for a moment
+function trackKeyboard(){ const t0 = performance.now(); const step = () => { placeComposer(); if(performance.now() - t0 < 900) requestAnimationFrame(step); }; requestAnimationFrame(step); }
+$('q').addEventListener('focus', trackKeyboard);
+$('q').addEventListener('blur', trackKeyboard);
 // tapping a button in the screen keeps the keyboard up
 $('composer').addEventListener('pointerdown', ev => { const b = ev.target.closest('button'); if(b && b.id !== 'shClose' && document.activeElement === $('q')) ev.preventDefault(); });
 $('goBtn').addEventListener('click', () => { $('addAll').click(); closeSheet(); });
@@ -7773,6 +7779,7 @@ function showTab(t){
   if(t !== 't') openN = null;   // leaving Training closes an open workout, so it comes back on the calendar
   document.documentElement.classList.toggle('home', t === 'n' && nMode === 'cal');
   if(t === 'n' && nMode === 'cal') lgCascade = true;
+  document.documentElement.classList.toggle('onL', t === 'l');
   $('viewN').hidden = t !== 'n'; $('viewL').hidden = t !== 'l'; $('viewT').hidden = t !== 't'; $('viewP').hidden = t !== 'p';
   $('tabN').setAttribute('aria-current', t === 'n' ? 'page' : 'false');
   $('tabL').setAttribute('aria-current', t === 'l' ? 'page' : 'false');
