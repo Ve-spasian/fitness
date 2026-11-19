@@ -1022,7 +1022,7 @@ function render(){
   Object.keys(state.days).sort().reverse().forEach(d=>{
     [...state.days[d]].reverse().forEach(e=>{ if(e.name && !seen.has(e.name.toLowerCase())) seen.set(e.name.toLowerCase(), e); });
   });
-  const recent = [...seen.values()].slice(0,12);
+  const recent = [...seen.values()].slice(0,40);
   $('recentPanel').hidden = !recent.length;
   $('recent').innerHTML = recent.map((e,i)=>`<button type="button" class="sRow" data-r="${i}"><span class="icoTile">${icoImg(iconFor(e))}</span><span>${esc(e.name)}</span><small>${Math.round(e.cal)}</small></button>`).join('');
   window._recent = recent;
@@ -1295,7 +1295,7 @@ document.querySelector('details.custom').addEventListener('toggle', ev => { if(e
 
 
 /* ---------- the log screen ---------- */
-let trayOpen = false, moreOpen = false, sheetOpen = false;
+let trayOpen = false, moreOpen = false, sheetOpen = false, lockY = 0;
 function trayUpdate(){
   const v = $('q').value.trim(), hasRecent = !!(window._recent && window._recent.length);
   $('recentPanel').hidden = !!v || !hasRecent || moreOpen || !!(staged && staged.length);
@@ -1309,6 +1309,8 @@ function openSheet(){
   const isToday = dkey(lDate) === dkey(new Date());
   $('shDay').textContent = isToday ? 'Today' : lDate.toLocaleDateString(undefined, {weekday:'long', month:'short', day:'numeric'});
   document.documentElement.classList.add('sheet');
+  // pin the page underneath so only the log screen scrolls
+  lockY = window.scrollY; Object.assign(document.body.style, {position:'fixed', top:-lockY + 'px', left:'0', right:'0', overflow:'hidden'});
   const c = $('composer'); c.hidden = false; c.classList.add('in');
   $('q').focus();   // in the same tap, so iOS raises the keyboard
   c.getBoundingClientRect(); c.classList.remove('in');
@@ -1319,6 +1321,7 @@ function closeSheet(){
   sheetOpen = false; $('q').blur(); trayClose();
   const c = $('composer'); c.classList.remove('drag'); c.style.transform = ''; c.classList.add('in');
   document.documentElement.classList.remove('sheet');
+  Object.assign(document.body.style, {position:'', top:'', left:'', right:'', overflow:''}); window.scrollTo(0, lockY);
   setTimeout(() => { if(!sheetOpen){ c.hidden = true; c.classList.remove('in'); } }, 320);
 }
 $('logBtn').addEventListener('click', openSheet);
