@@ -282,8 +282,9 @@
   .tlRow.editing .nm b{color:var(--action);white-space:normal;overflow:visible;text-overflow:clip;overflow-wrap:anywhere}
   .tlRow .icoTile{position:relative;z-index:1}
   #lBody .eEdit{margin-left:104px}
-  .tlEmpty{margin:var(--s4) 0 0 104px}
-  .tlAdd{margin:var(--s4) 0 0 104px}
+  #lBody .tlEmpty{margin:var(--s4) 0 0;text-align:center}
+  #lBody .tlActs{display:flex;flex-direction:column;align-items:center;gap:var(--s2);margin-top:var(--s4)}
+  #lBody .tlActs .chip{margin:0;width:min(100%,300px);text-align:center}
   .eDel{margin-left:auto}
   .icoPick{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding:2px}
   .icoPick::-webkit-scrollbar{display:none}
@@ -413,7 +414,7 @@
   /* not logging: a quiet open ring, neither earned nor missed */
   .offM{display:block;width:12px;height:12px;border-radius:50%;box-shadow:inset 0 0 0 1.5px var(--ink-3)}
   .lgLegend .offM{width:10px;height:10px}
-  .offBtn{display:block;margin:var(--s5) auto 0;color:var(--ink-2)}
+  .offBtn{color:var(--ink-2)}
   .offNote{display:flex;align-items:center;gap:var(--s3);padding:var(--s3) 0;margin-bottom:var(--s3);border-bottom:1px dashed var(--rule)}
   .offNote .offM{flex:none;width:16px;height:16px}
   .offNote div{flex:1;display:flex;flex-direction:column;gap:2px}
@@ -1023,7 +1024,7 @@ function paintSky(){
   const r = document.documentElement.style;
   r.setProperty('--sky1', `rgba(${P[0]},${(P[1]*a).toFixed(2)})`); r.setProperty('--sky2', `rgba(${P[2]},${(P[3]*a).toFixed(2)})`);
 }
-function openNDay(d){ if(d > new Date()) return;   // no logging food on days that haven't happened
+function openNDay(d){   // future days open too, so food can be planned ahead
   lDate = new Date(d.getFullYear(), d.getMonth(), d.getDate()); lEdit = null; showTab('l'); window.__tabI = 1; }
 function closeNDay(){ editAt = null; lgCascade = true; showTab('n'); window.__tabI = 0; }
 
@@ -1303,14 +1304,16 @@ let lDate = new Date(), lEdit = null;
 const fmtTime = t => new Date(t).toLocaleTimeString(undefined, {hour:'numeric', minute:'2-digit'}).replace(/\s?(AM|PM)$/i, m => m.trim().toLowerCase());
 function renderLog(){
   const k = dkey(lDate), list = state.days[k] || [], t = totals(list), isToday = k === dkey(new Date());
-  $('lTitle').textContent = isToday ? 'Today' : lDate.toLocaleDateString(undefined, {weekday:'long'});
+  const tmrw = k === dkey(addDays(new Date(), 1));
+  $('lTitle').textContent = isToday ? 'Today' : tmrw ? 'Tomorrow' : lDate.toLocaleDateString(undefined, {weekday:'long'});
   $('lSub').textContent = lDate.toLocaleDateString(undefined, {month:'long', day:'numeric', year:'numeric'});
-  $('lNext').style.visibility = isToday ? 'hidden' : '';
   const idx = list.map((e,i) => i);
-  const timed = idx.filter(i => list[i].t).sort((a,b) => list[a].t - list[b].t), untimed = idx.filter(i => !list[i].t);
+  // a time only means something if it was logged on that day (not planned ahead or backfilled)
+  const at = e => e.t && dkey(new Date(e.t)) === k;
+  const timed = idx.filter(i => at(list[i])).sort((a,b) => list[a].t - list[b].t), untimed = idx.filter(i => !at(list[i]));
   const row = i => {
     const e = list[i], a = entryAmt(e), ed = lEdit === i;
-    return `<button type="button" class="tlRow${ed ? ' editing' : ''}" data-i="${i}"><span class="tm">${e.t ? fmtTime(e.t) : ''}</span>
+    return `<button type="button" class="tlRow${ed ? ' editing' : ''}" data-i="${i}"><span class="tm">${at(e) ? fmtTime(e.t) : ''}</span>
       <span class="icoTile">${icoImg(iconFor(e))}</span>
       <span class="nm"><b>${esc(a.nm)}</b><span>${a.lab ? esc(amtLabel(a.q, a.u)) + ' · ' : ''}${r1(e.pro)} g protein</span></span>
       <span class="cal">${Math.round(e.cal).toLocaleString()}</span></button>${ed ? editHTML(e, i).replace('<button class="tool eCancel" type="button">Cancel</button>', '<button class="tool eCancel" type="button">Cancel</button><button class="lnk warn eDel" type="button">Delete</button>') : ''}`;
@@ -1321,10 +1324,10 @@ function renderLog(){
     : `<button type="button" class="chip offBtn" id="lOff">Not logging ${isToday ? 'today' : 'this day'}</button>`;
   $('lBody').innerHTML = `${off ? offUI : ''}<h2 class="tlHead">${list.length} ${list.length === 1 ? 'food' : 'foods'}</h2>
     ${list.length ? `<div class="tl">${untimed.length ? `${timed.length ? '<div class="tlGroup">Earlier</div>' : ''}${untimed.map(row).join('')}` : ''}${timed.map(row).join('')}</div>`
-      : `<p class="muted tlEmpty">Nothing logged ${isToday ? 'yet today' : 'this day'}.</p>${prev.length ? `<button type="button" class="chip tlAdd" id="lCopy">Start with ${addDays(lDate,-1).toLocaleDateString(undefined,{weekday:'long'})}\u2019s ${Math.round(prev.reduce((a,e)=>a+e.cal,0)).toLocaleString()} cal</button>` : ''}`}${off ? '' : offUI}`;
+      : `<p class="muted tlEmpty">Nothing logged ${isToday ? 'yet today' : 'this day'}.</p><div class="tlActs">${prev.length ? `<button type="button" class="chip tlAdd" id="lCopy">Start with ${addDays(lDate,-1).toLocaleDateString(undefined,{weekday:'long'})}\u2019s ${Math.round(prev.reduce((a,e)=>a+e.cal,0)).toLocaleString()} cal</button>` : ''}${off ? '' : offUI}</div>`}${off || !list.length ? '' : `<div class="tlActs">${offUI}</div>`}`;
 }
 $('lPrev').onclick = () => { lDate = addDays(lDate, -1); lEdit = null; render(); };
-$('lNext').onclick = () => { if(dkey(lDate) >= dkey(new Date())) return; lDate = addDays(lDate, 1); lEdit = null; render(); };
+$('lNext').onclick = () => { lDate = addDays(lDate, 1); lEdit = null; render(); };
 $('lBody').addEventListener('click', ev => {
   const k = dkey(lDate), list = state.days[k] || [];
   const box = ev.target.closest('.eEdit');
@@ -8254,11 +8257,6 @@ function fixFutureDates(){
   Object.keys(state.body).filter(k => k > tk).sort().forEach(k => {
     if(!state.body[tk]) state.body[tk] = state.body[k];
     delete state.body[k]; changed = true;
-  });
-  Object.keys(state.days).filter(k => k > tk).forEach(k => {
-    // food on a future day can't have been eaten then: back to the day it was logged, or today if that's unknown
-    state.days[k].forEach(e => { const rk = e.t ? dkey(new Date(e.t)) : tk; (state.days[rk > tk ? tk : rk] = state.days[rk > tk ? tk : rk] || []).push(e); });
-    delete state.days[k]; changed = true;
   });
   if(changed) save();
 }
