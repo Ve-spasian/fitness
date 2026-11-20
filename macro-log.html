@@ -409,6 +409,16 @@
   .yearG i.g{background:var(--earned)}
   .yearG i.w{background:var(--caution);opacity:.5}
   .yearG i.t{box-shadow:0 0 0 1.5px var(--ink)}
+  .yearG i.o{background:none;box-shadow:inset 0 0 0 1px var(--ink-3)}
+  /* not logging: a quiet open ring, neither earned nor missed */
+  .offM{display:block;width:12px;height:12px;border-radius:50%;box-shadow:inset 0 0 0 1.5px var(--ink-3)}
+  .lgLegend .offM{width:10px;height:10px}
+  .offBtn{display:block;margin:var(--s5) auto 0;color:var(--ink-2)}
+  .offNote{display:flex;align-items:center;gap:var(--s3);padding:var(--s3) 0;margin-bottom:var(--s3);border-bottom:1px dashed var(--rule)}
+  .offNote .offM{flex:none;width:16px;height:16px}
+  .offNote div{flex:1;display:flex;flex-direction:column;gap:2px}
+  .offNote b{font-size:15px}
+  .offNote span{font-size:13px;color:var(--ink-2)}
   .yearNote{margin:var(--s3) 0 0} .yearNote b{color:var(--ink)}
   .spark{width:100%;height:120px;display:block;overflow:visible}
   .sparkLbl{display:flex;justify-content:space-between;font-size:11px;color:var(--ink-2);margin-top:6px}
@@ -484,6 +494,34 @@
   .setrow{margin-bottom:var(--s2)}
   .setrow .sn{font-size:14px;font-weight:600;color:var(--ink-2);text-align:center}
   .setrow input{text-align:center;font-size:18px;font-weight:700;font-variant-numeric:tabular-nums}
+  .swW{position:relative}
+  .swW.hasP input{padding-right:34px;padding-left:22px}
+  .plt{position:absolute;right:4px;top:50%;transform:translateY(-50%);width:30px;height:36px;border:0;border-radius:var(--r-ctl);background:none;color:var(--ink-3);display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0}
+  .plt svg{width:18px;height:15px}
+  .plt:active{color:var(--action)}
+  .plSheet{max-height:88vh;overflow-y:auto}
+  .plSub{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-3);margin-top:2px}
+  .plTot{display:flex;align-items:baseline;justify-content:center;gap:6px;margin:var(--s1) 0 0}
+  .plTot b{font-family:var(--mono);font-size:44px;font-weight:700;color:var(--score,var(--ink));font-variant-numeric:tabular-nums;line-height:1}
+  .plTot span{font-family:var(--mono);font-size:14px;color:var(--ink-2)}
+  .plVis{display:block;width:100%;height:64px;margin:var(--s2) 0 0}
+  .plVis .pbar{fill:var(--rule-strong)} .plVis .pcol{fill:var(--ink-3)}
+  .plVis .pp{fill:var(--ink-2)} .plVis .pp.big{fill:var(--ink)}
+  .plHint{text-align:center;font-size:12px;color:var(--ink-3);margin:2px 0 var(--s3)}
+  .plRows{border-top:1px dashed var(--rule)}
+  .plRow{display:grid;grid-template-columns:52px 1fr 44px 32px 44px;align-items:center;gap:var(--s1);padding:6px 0;border-bottom:1px dashed var(--rule)}
+  .plW{font-family:var(--mono);font-size:18px;font-weight:700}
+  .plX{font-family:var(--mono);font-size:12px;color:var(--ink-3)}
+  .plN{font-family:var(--mono);font-size:18px;text-align:center;font-variant-numeric:tabular-nums}
+  .plB{width:44px;height:40px;border:1px solid var(--rule-strong);border-radius:var(--r-ctl);background:none;color:var(--ink);font-size:20px;line-height:1;cursor:pointer;padding:0}
+  .plB:disabled{opacity:.3}
+  .plB:active:not(:disabled){background:var(--surface)}
+  .plOpts{display:flex;align-items:center;justify-content:space-between;gap:var(--s3);margin:var(--s3) 0}
+  .plBase{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--ink-2)}
+  .plBase input{width:72px;height:40px;text-align:center;font-family:var(--mono);font-weight:700}
+  .plSw{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--ink-2)}
+  .plSw input{width:20px;height:20px;accent-color:var(--action)}
+  .plAll{display:block;width:100%;margin-top:var(--s2)}
   .chk{height:48px;border-radius:var(--r-ctl);border:1px solid var(--rule-strong);background:none;color:var(--ink-3);font-size:18px;cursor:pointer}
   .setrow.ok .chk{background:var(--earned);border-color:var(--earned);color:var(--on-earned);animation:pop .3s var(--ease)}
   .setrow.ok input{border-color:color-mix(in srgb,var(--earned) 50%,transparent)}
@@ -771,6 +809,12 @@
     <div id="howBody"></div>
   </div>
 </div>
+<div class="modal" id="plateModal" hidden>
+  <div class="sheet plSheet" role="dialog" aria-modal="true" aria-labelledby="plTitle">
+    <div class="sheetHead"><div><h2 id="plTitle"></h2><div class="plSub" id="plSub"></div></div><button class="x" id="plClose" aria-label="Close">×</button></div>
+    <div id="plBody"></div>
+  </div>
+</div>
 <div class="modal" id="scanModal" hidden>
   <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="scanTitle">
     <div class="sheetHead"><h2 id="scanTitle">Scan a barcode</h2><button class="x" id="scanClose" aria-label="Close scanner">×</button></div>
@@ -840,15 +884,22 @@ const LG_CHECK = '<span class="hit"><svg viewBox="0 0 12 12" fill="none" stroke=
 const LG_YIELD = '<svg class="yld" viewBox="0 0 20 18" aria-hidden="true"><path d="M2.6 2.9h14.8c.8 0 1.3.9.8 1.6l-7.4 11c-.4.6-1.2.6-1.6 0L1.8 4.5c-.5-.7 0-1.6.8-1.6z" fill="var(--caution)" stroke="var(--caution)" stroke-width="1.2" stroke-linejoin="round"/><path d="M10 5.6v3.9" stroke="#1d1600" stroke-width="2" stroke-linecap="round"/><circle cx="10" cy="12.1" r="1.05" fill="#1d1600"/></svg>';
 const todayD = () => { const n = new Date(); return new Date(n.getFullYear(), n.getMonth(), n.getDate()); };
 // food state for a day: 'g' earned, 'w' missed, '' nothing to say yet
+// a day marked "not logging" (a night out): no check, no miss, and the streak carries straight through it
+const isOff = k => !!(state.off && state.off[k]);
 function dayState(d){
   const k = dkey(d), tk = dkey(todayD()), h = dayHit(state.days[k]);
+  if(isOff(k)) return 'o';
   if(h) return 'g';
   if(h === false && (k < tk || dayOver(state.days[k]))) return 'w';
   return '';
 }
 function streakNow(){
   const t = todayD(); let n = 0;
-  for(let d = dayHit(state.days[dkey(t)]) ? t : addDays(t,-1); dayHit(state.days[dkey(d)]); d = addDays(d,-1)) n++;
+  for(let d = !isOff(dkey(t)) && dayHit(state.days[dkey(t)]) ? t : addDays(t,-1), i = 0; i < 3660; d = addDays(d,-1), i++){
+    const k = dkey(d);
+    if(isOff(k)) continue;
+    if(dayHit(state.days[k])) n++; else break;
+  }
   return n;
 }
 // the workout plan by date, for the ticks under each day
@@ -880,11 +931,11 @@ function renderNCal(){
   for(let d = gridStart; d <= gridEnd; d = addDays(d,1)) states[dkey(d)] = d <= today ? dayState(d) : '';
   for(let d = gridStart; d <= gridEnd; d = addDays(d,1), idx++){
     const k = dkey(d), st = states[k], inM = d.getMonth() === first.getMonth(), w = wk[k];
-    if(inM && st){ logged++; if(st === 'g') hits++; }
+    if(inM && st && st !== 'o'){ logged++; if(st === 'g') hits++; }
     const cls = ['day']; if(!inM) cls.push('out'); if(k === todayK) cls.push('today'); if(d > today) cls.push('future');
     const tk = w ? (w.fin ? 'done' : 'plan') : 'none';
-    const lbl = d.toLocaleDateString(undefined,{weekday:'long',month:'long',day:'numeric'}) + (st === 'g' ? ', food on target' : st === 'w' ? ', food missed' : '') + (w ? (w.fin ? ', workout done' : ', workout planned') : '');
-    cells += `<button class="${cls.join(' ')}" data-d="${k}" style="--i:${idx}" aria-label="${esc(lbl)}"><span class="dn">${d.getDate()}</span><span class="mk">${st === 'g' ? LG_CHECK : st === 'w' ? LG_YIELD : ''}</span><i class="tk ${tk}"></i></button>`;
+    const lbl = d.toLocaleDateString(undefined,{weekday:'long',month:'long',day:'numeric'}) + (st === 'g' ? ', food on target' : st === 'w' ? ', food missed' : st === 'o' ? ', not logging' : '') + (w ? (w.fin ? ', workout done' : ', workout planned') : '');
+    cells += `<button class="${cls.join(' ')}" data-d="${k}" style="--i:${idx}" aria-label="${esc(lbl)}"><span class="dn">${d.getDate()}</span><span class="mk">${st === 'g' ? LG_CHECK : st === 'w' ? LG_YIELD : st === 'o' ? '<span class="offM"></span>' : ''}</span><i class="tk ${tk}"></i></button>`;
   }
 
   // year: the last 52 weeks as small squares
@@ -892,14 +943,14 @@ function renderNCal(){
   if(lgYear){
     for(let i = 364, j = 0; i >= 0; i--, j++){
       const d = addDays(today, -i), st = dayState(d);
-      if(st){ yn++; if(st === 'g'){ yg++; run++; best = Math.max(best, run); } else run = 0; }
+      if(st && st !== 'o'){ yn++; if(st === 'g'){ yg++; run++; best = Math.max(best, run); } else run = 0; }
       yearHTML += `<i class="${st}${i === 0 ? ' t' : ''}" style="--i:${j}" title="${d.toDateString()}"></i>`;
     }
   }
 
   // week: calories against the goal band
   const g = state.targets, wkd = [];
-  for(let i = 6; i >= 0; i--){ const d = addDays(today, -i), l = state.days[dkey(d)]; wkd.push({d, c: l && l.length ? totals(l).cal : null}); }
+  for(let i = 6; i >= 0; i--){ const d = addDays(today, -i), l = state.days[dkey(d)]; wkd.push({d, c: l && l.length && !isOff(dkey(d)) ? totals(l).cal : null}); }
   const vals = wkd.filter(x => x.c != null).map(x => x.c).concat([g.cal + 100, g.cal - 400]);
   const lo = Math.min(...vals) - 150, hi = Math.max(...vals) + 150, W = 340, H = 120;
   const y = v => (H - 12) - (v - lo)/(hi - lo)*(H - 24), x = i => 6 + i*(W - 12)/6;
@@ -922,7 +973,7 @@ function renderNCal(){
   const tr = it ? (it.fin ? ['Done', tplOf(it.n).name] : [tplOf(it.n).name, 'Planned \u00b7 ~' + workoutBurn(tplOf(it.n)).cal + ' cal']) : ['Rest', 'No workout today'];
   el.innerHTML = `
     <section class="tiles" aria-label="Today at a glance">
-      <button type="button" class="tile" data-go="l"><small>Food</small><b class="num">${Math.round(tt.cal).toLocaleString()}</b><span>${Math.round(tt.pro)} of ${g.pro} g protein</span></button>
+      <button type="button" class="tile" data-go="l"><small>Food</small><b class="num">${Math.round(tt.cal).toLocaleString()}</b><span>${isOff(todayK) ? 'Not logging today' : `${Math.round(tt.pro)} of ${g.pro} g protein`}</span></button>
       <button type="button" class="tile" data-go="t" ${it && !it.fin ? `data-open="${it.n}"` : ''}><small>Training</small><b class="${it && it.fin ? 'ok' : 'pl'}">${esc(tr[0])}</b><span>${esc(tr[1])}</span></button>
       <button type="button" class="tile" data-go="p"><small>Weigh-in</small><b class="num ${wb && wb.w ? 'ok' : ''}">${wb && wb.w ? wb.w : '\u2014'}</b><span>${wb && wb.w ? 'lb \u00b7 logged' : 'Not logged'}</span></button>
     </section>
@@ -933,7 +984,7 @@ function renderNCal(){
       <div class="mNav"><button type="button" data-m="-1" aria-label="Previous month">‹</button><b>${first.toLocaleDateString(undefined,{month:'long',year:'numeric'})}</b><button type="button" data-m="1" aria-label="Next month">›</button></div>
       <div class="dow"><span>S</span><span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span></div>
       <div class="lgrid">${cells}</div>
-      <div class="lgLegend"><span><i class="hitS"></i>${hits} of ${logged} on target</span><span>${LG_YIELD.replace('class="yld"','class="yld" style="width:15px;height:14px"')}Missed</span><span><i class="tk done"></i>Workout done</span><span><i class="tk plan"></i>Planned</span></div>`}
+      <div class="lgLegend"><span><i class="hitS"></i>${hits} of ${logged} on target</span><span>${LG_YIELD.replace('class="yld"','class="yld" style="width:15px;height:14px"')}Missed</span>${Object.keys(state.off || {}).length ? '<span><i class="offM"></i>Not logging</span>' : ''}<span><i class="tk done"></i>Workout done</span><span><i class="tk plan"></i>Planned</span></div>`}
     </section>
     <section class="lgSec" aria-labelledby="lgWkH"><div class="lgHead"><h2 id="lgWkH">This week</h2><span class="lgSub">Calories vs goal</span></div>
       <svg class="spark" viewBox="0 0 ${W} ${H}" role="img" aria-label="Calories for the last seven days against the goal band">${spark}</svg>
@@ -942,7 +993,7 @@ function renderNCal(){
 }
 // the moment a day turns green: the check draws in, a ring spreads, and a note says how long the run is
 function checkEarned(){
-  const t = todayD(), k = dkey(t), now = !!dayHit(state.days[k]);
+  const t = todayD(), k = dkey(t), now = !isOff(k) && !!dayHit(state.days[k]);
   if(earnedToday && earnedToday.k === k && !earnedToday.v && now && nMode === 'cal'){
     const cell = document.querySelector(`#nCal .day[data-d="${k}"]`);
     if(cell){ cell.classList.remove('earn'); void cell.offsetWidth; cell.classList.add('earn'); }
@@ -1264,10 +1315,13 @@ function renderLog(){
       <span class="nm"><b>${esc(a.nm)}</b><span>${a.lab ? esc(amtLabel(a.q, a.u)) + ' · ' : ''}${r1(e.pro)} g protein</span></span>
       <span class="cal">${Math.round(e.cal).toLocaleString()}</span></button>${ed ? editHTML(e, i).replace('<button class="tool eCancel" type="button">Cancel</button>', '<button class="tool eCancel" type="button">Cancel</button><button class="lnk warn eDel" type="button">Delete</button>') : ''}`;
   };
-  const prev = state.days[dkey(addDays(lDate,-1))] || [];
-  $('lBody').innerHTML = `<h2 class="tlHead">${list.length} ${list.length === 1 ? 'food' : 'foods'}</h2>
+  const prev = state.days[dkey(addDays(lDate,-1))] || [], off = isOff(k);
+  const offUI = off
+    ? `<div class="offNote"><i class="offM"></i><div><b>Not logging ${isToday ? 'today' : 'this day'}</b><span>No check and no miss. Your streak carries through.</span></div><button type="button" class="lnk" id="lOff">Undo</button></div>`
+    : `<button type="button" class="chip offBtn" id="lOff">Not logging ${isToday ? 'today' : 'this day'}</button>`;
+  $('lBody').innerHTML = `${off ? offUI : ''}<h2 class="tlHead">${list.length} ${list.length === 1 ? 'food' : 'foods'}</h2>
     ${list.length ? `<div class="tl">${untimed.length ? `${timed.length ? '<div class="tlGroup">Earlier</div>' : ''}${untimed.map(row).join('')}` : ''}${timed.map(row).join('')}</div>`
-      : `<p class="muted tlEmpty">Nothing logged ${isToday ? 'yet today' : 'this day'}.</p>${prev.length ? `<button type="button" class="chip tlAdd" id="lCopy">Start with ${addDays(lDate,-1).toLocaleDateString(undefined,{weekday:'long'})}\u2019s ${Math.round(prev.reduce((a,e)=>a+e.cal,0)).toLocaleString()} cal</button>` : ''}`}`;
+      : `<p class="muted tlEmpty">Nothing logged ${isToday ? 'yet today' : 'this day'}.</p>${prev.length ? `<button type="button" class="chip tlAdd" id="lCopy">Start with ${addDays(lDate,-1).toLocaleDateString(undefined,{weekday:'long'})}\u2019s ${Math.round(prev.reduce((a,e)=>a+e.cal,0)).toLocaleString()} cal</button>` : ''}`}${off ? '' : offUI}`;
 }
 $('lPrev').onclick = () => { lDate = addDays(lDate, -1); lEdit = null; render(); };
 $('lNext').onclick = () => { if(dkey(lDate) >= dkey(new Date())) return; lDate = addDays(lDate, 1); lEdit = null; render(); };
@@ -1281,6 +1335,7 @@ $('lBody').addEventListener('click', ev => {
     return;
   }
   if(ev.target.closest('#lCopy')){ $('copyPrev').click(); return; }
+  if(ev.target.closest('#lOff')){ if(state.off[k]) delete state.off[k]; else state.off[k] = true; save(); render(); renderLog(); return; }
   if(ev.target.closest('#lAdd')){ current = new Date(lDate); if(dkey(lDate) !== dkey(new Date())){ nMode = 'day'; } showTab('n'); window.__tabI = 0; setTimeout(() => $('q').focus(), 60); return; }
   const r = ev.target.closest('.tlRow'); if(!r) return;
   lEdit = lEdit === +r.dataset.i ? null : +r.dataset.i; renderLog();
@@ -7508,6 +7563,80 @@ $('howClose').onclick = () => { $('howModal').hidden = true; };
 $('howModal').addEventListener('click', ev => { if(ev.target === $('howModal')) $('howModal').hidden = true; });
 document.addEventListener('keydown', ev => { if(ev.key === 'Escape') $('howModal').hidden = true; });
 
+// ---------- plate picker ----------
+// count plates per side (or per stack), plus the bar or sled, and the set takes the total.
+// the bar weight and the both-sides switch are remembered per exercise, the plates per set.
+const PLATES = [45, 35, 25, 10, 5, 2.5];
+const PLT_ICO = '<svg viewBox="0 0 20 16" aria-hidden="true"><path d="M1 8h18" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><rect x="5" y="1.5" width="3" height="13" rx="1" fill="currentColor"/><rect x="9" y="3.5" width="2.6" height="9" rx="1" fill="currentColor"/><rect x="12.6" y="5.5" width="2" height="5" rx="1" fill="currentColor"/></svg>';
+let pl = null;
+function plTotal(){ return pl.base + (pl.x2 ? 2 : 1) * PLATES.reduce((a,w) => a + w * (pl.c[w] || 0), 0); }
+function plFrom(w, base, x2){
+  const c = {}; let per = Math.max(0, (w - base) / (x2 ? 2 : 1));
+  PLATES.forEach(p => { const n = Math.floor((per + 1e-6) / p); if(n){ c[p] = n; per -= n * p; } });
+  return c;
+}
+function openPlates(rec, j, k){
+  const e = rec.ex[j], st = e.sets[k], cfg = state.train.plates[e.n] || {base:0, x2:true};
+  const row = document.querySelector(`#tBody .setrow[data-j="${j}"][data-k="${k}"]`);
+  const w = parseFloat(row && row.querySelector('.sw').value) || +st.w || 0;
+  pl = {rec, j, k, base: +cfg.base || 0, x2: cfg.x2 !== false, c: {}};
+  if(st.p && Math.abs((pl.base + (pl.x2 ? 2 : 1) * PLATES.reduce((a,p) => a + p * (st.p[p] || 0), 0)) - w) < .01) pl.c = Object.assign({}, st.p);
+  else pl.c = plFrom(w, pl.base, pl.x2);
+  $('plTitle').textContent = e.n;
+  $('plSub').textContent = `Set ${k+1} of ${e.sets.length}`;
+  renderPlates();
+  $('plateModal').hidden = false;
+}
+function plSide(){
+  // one side of the bar, biggest plates nearest the middle, drawn to scale
+  let x = 30, out = '';
+  PLATES.forEach(p => { for(let i = 0; i < (pl.c[p] || 0) && x < 300; i++){
+    const h = 18 + Math.sqrt(p / 45) * 50, wd = p >= 25 ? 13 : p >= 10 ? 9 : 7;
+    out += `<rect x="${x}" y="${(80 - h) / 2}" width="${wd}" height="${h.toFixed(1)}" rx="2" class="pp${p >= 25 ? ' big' : ''}"/>`; x += wd + 2; } });
+  return `<svg class="plVis" viewBox="0 0 320 80" aria-hidden="true"><rect x="0" y="36" width="320" height="8" rx="2" class="pbar"/><rect x="18" y="26" width="8" height="28" rx="2" class="pcol"/>${out}</svg>`;
+}
+function renderPlates(){
+  const tot = plTotal(), rec = pl.rec, e = rec.ex[pl.j];
+  const open = e.sets.filter((x,i) => !x.ok && i !== pl.k).length;
+  $('plBody').innerHTML = `
+    <div class="plTot"><b>${fmtLb(tot)}</b><span>lb</span></div>
+    ${plSide()}
+    <div class="plHint">${pl.x2 ? 'Plates on one side. The other side matches.' : 'Every plate on the stack.'}</div>
+    <div class="plRows">${PLATES.map(p => `<div class="plRow" data-p="${p}"><span class="plW">${p}</span><span class="plX">${pl.c[p] ? `${fmtLb(p * pl.c[p] * (pl.x2 ? 2 : 1))} lb` : ''}</span>
+      <button type="button" class="plB" data-d="-1" aria-label="One less ${p}" ${pl.c[p] ? '' : 'disabled'}>−</button><b class="plN">${pl.c[p] || 0}</b><button type="button" class="plB" data-d="1" aria-label="One more ${p}">+</button></div>`).join('')}</div>
+    <div class="plOpts">
+      <label class="plBase"><span>Bar or sled</span><input id="plBaseIn" type="number" inputmode="decimal" step="any" min="0" value="${pl.base || ''}" placeholder="0"><span>lb</span></label>
+      <label class="plSw"><input type="checkbox" id="plX2" ${pl.x2 ? 'checked' : ''}><span>Both sides</span></label>
+    </div>
+    <button type="button" class="primary" id="plUse">Use ${fmtLb(tot)} lb</button>
+    ${open ? `<button type="button" class="tool plAll" id="plAll">Use for all ${open + 1} open sets</button>` : ''}`;
+}
+const fmtLb = n => (Math.round(n * 10) / 10).toLocaleString();
+function plApply(all){
+  const rec = pl.rec, e = rec.ex[pl.j], tot = plTotal();
+  state.train.plates[e.n] = {base: pl.base, x2: pl.x2};
+  e.sets.forEach((st, i) => {
+    if(i !== pl.k && (!all || st.ok)) return;
+    st.w = tot; st.auto = false; st.p = Object.assign({}, pl.c);
+    const inp = document.querySelector(`#tBody .setrow[data-j="${pl.j}"][data-k="${i}"] .sw`);
+    if(inp) inp.value = tot;
+  });
+  save(); $('plateModal').hidden = true;
+}
+$('plBody').addEventListener('click', ev => {
+  const b = ev.target.closest('.plB');
+  if(b){ const p = +b.closest('.plRow').dataset.p; pl.c[p] = Math.max(0, (pl.c[p] || 0) + +b.dataset.d); if(!pl.c[p]) delete pl.c[p]; renderPlates(); return; }
+  if(ev.target.closest('#plUse')) plApply(false);
+  else if(ev.target.closest('#plAll')) plApply(true);
+});
+$('plBody').addEventListener('change', ev => {
+  if(ev.target.id === 'plBaseIn'){ pl.base = Math.max(0, parseFloat(ev.target.value) || 0); renderPlates(); }
+  else if(ev.target.id === 'plX2'){ pl.x2 = ev.target.checked; renderPlates(); }
+});
+$('plClose').onclick = () => { $('plateModal').hidden = true; };
+$('plateModal').addEventListener('click', ev => { if(ev.target === $('plateModal')) $('plateModal').hidden = true; });
+document.addEventListener('keydown', ev => { if(ev.key === 'Escape') $('plateModal').hidden = true; });
+
 // moves done with your own bodyweight; added weight is optional
 const BW_EX = new Set(['Pull-up','Assisted pull-up','Hanging leg raise','Hanging knee raise','Captain’s chair leg raise','Lying leg raise',
   'Assisted nordic curl','Sissy squat','45-degree back extension','Glute bridge']);
@@ -7727,7 +7856,7 @@ function renderSessionView(){
     const bw = BW_EX.has(e.n);
     const sets = e.sets.map((st,k)=>`
       <div class="setrow ${st.ok ? 'ok' : ''}" data-j="${j}" data-k="${k}"><span class="sn">${k+1}</span>
-        <input class="sw" type="number" inputmode="decimal" step="any" min="0" placeholder="${bw ? 'BW' : 'lb'}" value="${st.w === '' || (bw && !+st.w) ? '' : st.w}" aria-label="${bw ? 'Added weight, optional,' : 'Weight'} for set ${k+1}">
+        <div class="swW${bw ? '' : ' hasP'}"><input class="sw" type="number" inputmode="decimal" step="any" min="0" placeholder="${bw ? 'BW' : 'lb'}" value="${st.w === '' || (bw && !+st.w) ? '' : st.w}" aria-label="${bw ? 'Added weight, optional,' : 'Weight'} for set ${k+1}">${bw ? '' : `<button class="plt" type="button" aria-label="Pick plates for set ${k+1}">${PLT_ICO}</button>`}</div>
         <input class="sr" type="number" inputmode="numeric" min="0" placeholder="${te.lo}-${te.hi}" value="${st.r === '' ? '' : st.r}" aria-label="Reps for set ${k+1}">
         <button class="chk" type="button" aria-pressed="${st.ok}" aria-label="Mark set ${k+1} done">✓</button></div>`).join('');
     return `${head}<section class="ex" data-j="${j}">
@@ -7786,6 +7915,8 @@ $('tBody').addEventListener('click', ev=>{
   if(t.closest('#heroPush')){ const sN = infoOf(nextIdx()); state.train.notBefore = dkey(addDays(sN.date, 1)); save(); renderTrain(); return; }
   if(t.closest('#startApply')){ const v = $('startDate').value; if(v){ state.train.start = v; state.train.notBefore = null; save(); renderTrain(); } return; }
   const rec = openN !== null && sessRec(openN); if(!rec) return;
+  const plt = t.closest('.plt');
+  if(plt){ const row = plt.closest('.setrow'); openPlates(rec, +row.dataset.j, +row.dataset.k); return; }
   const chk = t.closest('.chk');
   if(chk){
     const row = chk.closest('.setrow'), st = rec.ex[+row.dataset.j].sets[+row.dataset.k];
@@ -7833,7 +7964,7 @@ $('tBody').addEventListener('change', ev=>{
   const row = t.closest('.setrow');
   if(row){
     const st = rec.ex[+row.dataset.j].sets[+row.dataset.k], v = t.value === '' ? '' : parseFloat(t.value);
-    if(t.classList.contains('sw')){ st.w = v; st.auto = false; } else if(t.classList.contains('sr')) st.r = v;
+    if(t.classList.contains('sw')){ st.w = v; st.auto = false; delete st.p; } else if(t.classList.contains('sr')) st.r = v;
     save(); return;
   }
   if(t.classList.contains('swap') && t.value){
@@ -8007,7 +8138,7 @@ function expenditure(){
   const ws = Object.keys(state.body).sort().map(k => ({d:pd(k), v:+state.body[k].w})).filter(p => p.v && p.d >= start && p.d <= end);
   const eats = [];
   for(let d = new Date(start); d <= end; d = addDays(d, 1)){
-    const l = state.days[dkey(d)]; if(!l || !l.length) continue;
+    const l = state.days[dkey(d)]; if(!l || !l.length || isOff(dkey(d))) continue;
     const c = totals(l).cal; if(c >= 800) eats.push(c);
   }
   const span = ws.length >= 2 ? Math.round((ws[ws.length-1].d - ws[0].d)/864e5) : 0;
@@ -8104,7 +8235,7 @@ function normalizeState(){
   state.targets = state.targets || {cal:2400, pro:180, carb:250, fat:70};
   state.days = state.days || {}; state.body = state.body || {}; state.custom = state.custom || [];
   state.train = state.train || {}; state.train.sessions = state.train.sessions || {}; state.meta = state.meta || {};
-  state.recipes = state.recipes || [];
+  state.recipes = state.recipes || []; state.off = state.off || {}; state.train.plates = state.train.plates || {};
   renameLifts();
   fixFutureDates();
 }
@@ -8208,7 +8339,7 @@ function fixFutureDates(){
   document.addEventListener('touchstart', ev=>{
     if(busy || ev.touches.length > 1){ mode = null; return; }
     const t = ev.touches[0]; sx = t.clientX; sy = t.clientY; st0 = ev.timeStamp; st = ev.target; lock = false; dx = 0; view = current(); els = [];
-    if(st.closest('input, select, textarea, button.chk, #scanModal, #howModal, .eEdit, #composer')){ mode = null; return; }
+    if(st.closest('input, select, textarea, button.chk, #scanModal, #howModal, #plateModal, .eEdit, #composer')){ mode = null; return; }
     const edge = sx <= EDGE ? 1 : sx >= W() - EDGE ? -1 : 0;   // 1 = left edge, -1 = right edge
     back = edge ? subBack() : null;
     mode = !back ? 'page' : edge === 1 ? 'backL' : 'backR';
