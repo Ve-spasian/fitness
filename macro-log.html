@@ -410,6 +410,12 @@
   .yearG i.g{background:var(--earned)}
   .yearG i.w{background:var(--caution);opacity:.5}
   .yearG i.t{box-shadow:0 0 0 1.5px var(--ink)}
+  .xpGoal{display:flex;justify-content:space-between;align-items:baseline;gap:var(--s3);padding:var(--s3) 0;margin-top:var(--s3);border-top:1px dashed var(--rule)}
+  .xpGoal>span{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-2);flex:none}
+  .xpGoal div{text-align:right;display:flex;flex-direction:column;gap:2px}
+  .xpGoal b{font-family:var(--mono);font-size:20px;font-weight:700;color:var(--ink)}
+  .xpGoal em{font-style:normal;font-size:12px;color:var(--ink-2)}
+  .xpGoal .lnk{padding:0}
   .yearG i.o{background:none;box-shadow:inset 0 0 0 1px var(--ink-3)}
   /* not logging: a quiet open ring, neither earned nor missed */
   .offM{display:block;width:12px;height:12px;border-radius:50%;box-shadow:inset 0 0 0 1.5px var(--ink-3)}
@@ -736,6 +742,7 @@
       <div class="targets">
         <div><label class="f" for="tCal">Calories</label><input id="tCal" type="number" inputmode="numeric"></div>
         <div><label class="f" for="tPro">Protein g</label><input id="tPro" type="number" inputmode="numeric"></div>
+        <div><label class="f" for="tGoalW">Goal weight lb</label><input id="tGoalW" type="number" inputmode="decimal" step="0.1" placeholder="None"></div>
         <div hidden><label class="f" for="tCarb">Carbs g</label><input id="tCarb" type="number" inputmode="numeric"></div>
         <div hidden><label class="f" for="tFat">Fat g</label><input id="tFat" type="number" inputmode="numeric"></div>
       </div>
@@ -1091,7 +1098,7 @@ function render(){
 
   renderBody();
 
-  $('tCal').value = g.cal; $('tPro').value = g.pro; $('tCarb').value = g.carb; $('tFat').value = g.fat;
+  $('tCal').value = g.cal; $('tPro').value = g.pro; $('tGoalW').value = g.goalW || ''; $('tCarb').value = g.carb; $('tFat').value = g.fat;
   renderBatches();
   renderNCal(); paintSky();
   checkEarned();
@@ -1520,8 +1527,8 @@ $('saveBody').onclick = () => {
   clearTimeout(btn._t); btn._t = setTimeout(() => { btn.classList.remove('lockedBtn'); renderBody(); }, 1800);
 };
 ['bW','bWa'].forEach(id => $(id).addEventListener('keydown', ev => { if(ev.key === 'Enter'){ ev.preventDefault(); $('saveBody').click(); } }));
-[['tCal','cal'],['tPro','pro'],['tCarb','carb'],['tFat','fat']].forEach(([id,k])=>{
-  $(id).onchange = () => { state.targets[k] = parseFloat($(id).value) || 0; save(); render(); };
+[['tCal','cal'],['tPro','pro'],['tCarb','carb'],['tFat','fat'],['tGoalW','goalW']].forEach(([id,k])=>{
+  $(id).onchange = () => { state.targets[k] = parseFloat($(id).value) || 0; save(); render(); if(!$('viewP').hidden) renderProgress(); };
 });
 
 
@@ -8153,7 +8160,23 @@ function expenditure(){
   const mx = x.reduce((a,b)=>a+b,0)/x.length, my = y.reduce((a,b)=>a+b,0)/y.length;
   const slope = x.reduce((a,xi,i)=>a + (xi-mx)*(y[i]-my), 0) / x.reduce((a,xi)=>a + (xi-mx)**2, 0);   // lb per day
   const intake = eats.reduce((a,b)=>a+b,0)/eats.length;
-  return {ready:true, tdee: Math.round((intake - slope*3500)/10)*10, week: slope*7, intake: Math.round(intake), days: eats.length, ws: ws.length};
+  const now = my + slope * (x[x.length-1] - mx);   // the trend line's weight on the last weigh-in, not one noisy reading
+  return {ready:true, tdee: Math.round((intake - slope*3500)/10)*10, week: slope*7, intake: Math.round(intake), days: eats.length, ws: ws.length, now, last: ws[ws.length-1].d};
+}
+// when the trend line reaches the goal weight at the current rate
+function goalLine(x){
+  const gw = +state.targets.goalW;
+  if(!gw) return `<div class="xpGoal"><span>Goal weight</span><button type="button" class="lnk" id="xpSetGoal">Set one to see a date</button></div>`;
+  const left = x.now - gw, perDay = x.week / 7;
+  let txt;
+  if(Math.abs(left) < 0.5) txt = '<b>You\u2019re there</b>';
+  else if(!perDay || Math.sign(perDay) !== -Math.sign(left) || Math.abs(x.week) < 0.1) txt = `<b>Not at this rate</b><em>${(left > 0 ? '\u2212' : '+') + Math.abs(left).toFixed(1)} lb to go, and the trend is ${Math.abs(x.week) < 0.1 ? 'flat' : left > 0 ? 'going up' : 'going down'}</em>`;
+  else {
+    const days = Math.round(Math.abs(left / perDay)), d = addDays(x.last, days), far = days > 730;
+    txt = far ? `<b>Over two years</b><em>${Math.abs(left).toFixed(1)} lb to go</em>`
+      : `<b>${d.toLocaleDateString(undefined, {month:'short', day:'numeric', year: d.getFullYear() !== new Date().getFullYear() ? 'numeric' : undefined})}</b><em>${Math.abs(left).toFixed(1)} lb to go \u00b7 about ${days < 70 ? days + ' days' : Math.round(days / 7) + ' weeks'}</em>`;
+  }
+  return `<div class="xpGoal"><span>${gw} lb goal</span><div>${txt}</div></div>`;
 }
 function expenditureCard(){
   const x = expenditure();
@@ -8174,6 +8197,7 @@ function expenditureCard(){
       <div><div class="big num">${x.tdee.toLocaleString()}<span class="unit">cal</span></div><small>burned a day</small></div>
       <div><div class="big num">${rate}<span class="unit">lb/wk</span></div><small>${steady ? 'holding steady' : w < 0 ? 'average loss' : 'average gain'}</small></div>
     </div>
+    ${goalLine(x)}
     <p class="muted">From the last four weeks: ${x.days} days of food averaging ${x.intake.toLocaleString()} cal, and ${x.ws} weigh-ins.</p></section>`;
 }
 
@@ -8191,6 +8215,7 @@ function renderProgress(){
 }
 
 $('pBody').addEventListener('click', ev=>{
+  if(ev.target.closest('#xpSetGoal')){ const dt = $('targetsCard').querySelector('details'); dt.open = true; $('targetsCard').scrollIntoView({block:'center'}); $('tGoalW').focus(); return; }
   const r = ev.target.closest('.range button'); if(r){ pRange = +r.dataset.r; renderProgress(); return; }
   if(ev.target.closest('#bkSave')) exportData();
 });
