@@ -511,10 +511,9 @@
   .plTot{display:flex;align-items:baseline;justify-content:center;gap:6px;margin:var(--s1) 0 0}
   .plTot b{font-family:var(--mono);font-size:44px;font-weight:700;color:var(--score,var(--ink));font-variant-numeric:tabular-nums;line-height:1}
   .plTot span{font-family:var(--mono);font-size:14px;color:var(--ink-2)}
-  .plVis{display:block;width:100%;height:64px;margin:var(--s2) 0 0}
+  .plVis{display:block;width:100%;height:72px;margin:var(--s3) 0 var(--s3)}
   .plVis .pbar{fill:var(--rule-strong)} .plVis .pcol{fill:var(--ink-3)}
   .plVis .pp{fill:var(--ink-2)} .plVis .pp.big{fill:var(--ink)}
-  .plHint{text-align:center;font-size:12px;color:var(--ink-3);margin:2px 0 var(--s3)}
   .plRows{border-top:1px dashed var(--rule)}
   .plRow{display:grid;grid-template-columns:52px 1fr 44px 32px 44px;align-items:center;gap:var(--s1);padding:6px 0;border-bottom:1px dashed var(--rule)}
   .plW{font-family:var(--mono);font-size:18px;font-weight:700}
@@ -709,7 +708,6 @@
       <div class="chips" id="bSuggest" aria-label="Ingredient suggestions" hidden></div>
       <label class="f" for="bWt">Cooked weight of the whole batch, optional</label>
       <div class="bw"><input id="bWt" type="number" inputmode="decimal" min="0" step="any"><select id="bWtU" aria-label="Unit"><option value="lb">lb</option><option value="oz">oz</option><option value="g">g</option></select></div>
-      <p class="muted">Weigh the pot full, then empty, and subtract. With a weight you can log a portion by weighing your bowl, not just by halves and quarters.</p>
       <div class="btnRow"><button class="primary" id="bSave" type="button">Save batch</button><button class="tool" id="bCancel" type="button">Cancel</button></div>
     </div>
   </section>
@@ -1083,7 +1081,7 @@ function render(){
     <div class="entry${ed ? ' editing' : ''}" data-i="${i}"><div class="t"><b>${esc(e.name||'Food')}</b><span>${macroLine(e)}</span></div>
     <div class="r"><span class="num">${Math.round(e.cal)}</span><button class="x" data-i="${i}" aria-label="Delete entry">×</button></div><button class="del" data-i="${i}" aria-label="Delete entry">Delete</button></div>${ed ? editHTML(e, i) : ''}`;
   }).join('')
-    : '<p class="empty">Nothing is logged for this day yet. Type what you ate above, or scan a package, and it will show up here.</p>';
+    : '<p class="empty">Nothing logged yet.</p>';
   if(home && list.length > 3) $('list').insertAdjacentHTML('beforeend', `<button type="button" class="moreBtn" id="lgMore">${lgShowAll ? 'Show less' : 'Show all ' + list.length}</button>`);
 
   // recent foods across all days, unique by name
@@ -1327,7 +1325,7 @@ function renderLog(){
   };
   const prev = state.days[dkey(addDays(lDate,-1))] || [], off = isOff(k);
   const offUI = off
-    ? `<div class="offNote"><i class="offM"></i><div><b>Not logging ${isToday ? 'today' : 'this day'}</b><span>No check and no miss. Your streak carries through.</span></div><button type="button" class="lnk" id="lOff">Undo</button></div>`
+    ? `<div class="offNote"><i class="offM"></i><div><b>Not logging ${isToday ? 'today' : 'this day'}</b></div><button type="button" class="lnk" id="lOff">Undo</button></div>`
     : `<button type="button" class="chip offBtn" id="lOff">Not logging ${isToday ? 'today' : 'this day'}</button>`;
   $('lBody').innerHTML = `${off ? offUI : ''}<h2 class="tlHead">${list.length} ${list.length === 1 ? 'food' : 'foods'}</h2>
     ${list.length ? `<div class="tl">${untimed.length ? `${timed.length ? '<div class="tlGroup">Earlier</div>' : ''}${untimed.map(row).join('')}` : ''}${timed.map(row).join('')}</div>`
@@ -7288,7 +7286,7 @@ async function openScan(){
   $('scanModal').hidden = false; $('codeIn').value = ''; scanBusy = false;
   setScanMsg('Starting the camera…');
   try{ await loadScannerLib(); }
-  catch(e){ setScanMsg('The scanner could not be loaded, but you can still type the digits printed under the barcode.'); return; }
+  catch(e){ setScanMsg('Scanner didn\u2019t load. Type the digits instead.'); return; }
   try{
     const F = Html5QrcodeSupportedFormats;
     scanner = new Html5Qrcode('reader', {formatsToSupport:[F.EAN_13, F.EAN_8, F.UPC_A, F.UPC_E, F.CODE_128, F.QR_CODE], useBarCodeDetectorIfSupported:true});
@@ -7296,7 +7294,7 @@ async function openScan(){
     setScanMsg('Point the camera at the barcode on the package and hold it steady for a moment.');
   }catch(e){
     scanner = null;
-    setScanMsg('The live camera did not start, which happens when a page is previewed inside another app. Taking a photo of the barcode below uses your phone\u2019s own camera and should work.');
+    setScanMsg('Camera didn\u2019t start. Take a photo instead.');
   }
 }
 async function closeScan(){ await stopScanner(); $('scanModal').hidden = true; }
@@ -7354,7 +7352,7 @@ async function usdaLookup(codes){
 async function lookupBarcode(raw){
   if(scanBusy) return;
   let code = String(raw).replace(/\D/g,'');
-  if(code.length < 8){ setScanMsg('That does not look like a full product barcode, which usually has between 8 and 13 digits.'); return; }
+  if(code.length < 8){ setScanMsg('Barcodes are 8 to 13 digits.'); return; }
   scanBusy = true;
   setScanMsg('Looking up ' + code + '\u2026');
   const codes = [];
@@ -7365,8 +7363,8 @@ async function lookupBarcode(raw){
   if(code.length === 13 && code[0] === '0') add(code.slice(1));
   if(code.length === 14) add(code.replace(/^0+/, '').padStart(13, '0'));
   const hit = await offLookup(codes) || await usdaLookup(codes);
-  if(!hit && usdaLimited){ scanBusy = false; setScanMsg('Open Food Facts has no entry for ' + code + ', and the USDA list is busy right now. Try again in a while, or add it under More \u2192 Add a custom food.'); return; }
-  if(!hit){ scanBusy = false; setScanMsg('Neither food database has ' + code + '. Check the digits, or add it under More \u2192 Add a custom food.'); return; }
+  if(!hit && usdaLimited){ scanBusy = false; setScanMsg('Not found, and USDA is busy. Try again later or add a custom food.'); return; }
+  if(!hit){ scanBusy = false; setScanMsg('Not found. Check the digits or add a custom food.'); return; }
   const name = keepScanned(hit.name, hit.per, hit.serv, true);
   await closeScan();
   setToolMsg('Found ' + name + '. Adjust the amount below if you ate more or less than one serving.');
@@ -7378,7 +7376,7 @@ async function scanPhoto(file){
   let text = null;
   try{ text = await decodeBarcodeFile(file); }catch(e){}
   if(text){ lookupBarcode(text); return; }
-  setScanMsg('No barcode could be read from that photo. Hold the phone about a hand span away, keep the bars sharp and flat, and fill most of the frame. You can also type the digits printed under the barcode.');
+  setScanMsg('Couldn\u2019t read that. Get closer and keep it sharp, or type the digits.');
 }
 $('barcodePhoto').onchange = ev => { const f = ev.target.files[0]; if(f) scanPhoto(f); ev.target.value = ''; };
 
@@ -7600,12 +7598,16 @@ function openPlates(rec, j, k){
   $('plateModal').hidden = false;
 }
 function plSide(){
-  // one side of the bar, biggest plates nearest the middle, drawn to scale
-  let x = 30, out = '';
-  PLATES.forEach(p => { for(let i = 0; i < (pl.c[p] || 0) && x < 300; i++){
-    const h = 18 + Math.sqrt(p / 45) * 50, wd = p >= 25 ? 13 : p >= 10 ? 9 : 7;
-    out += `<rect x="${x}" y="${(80 - h) / 2}" width="${wd}" height="${h.toFixed(1)}" rx="2" class="pp${p >= 25 ? ' big' : ''}"/>`; x += wd + 2; } });
-  return `<svg class="plVis" viewBox="0 0 320 80" aria-hidden="true"><rect x="0" y="36" width="320" height="8" rx="2" class="pbar"/><rect x="18" y="26" width="8" height="28" rx="2" class="pcol"/>${out}</svg>`;
+  // the whole bar from the front: plates load outward from each collar, biggest first, drawn to scale
+  const per = pl.x2 ? 1 : 0.5;   // a single stack splits across the picture so it still reads as one bar
+  let out = '', off = 0;
+  PLATES.forEach(p => { const n = Math.ceil((pl.c[p] || 0) * per); for(let i = 0; i < n && off < 112; i++){
+    const h = 18 + Math.sqrt(p / 45) * 52, wd = p >= 25 ? 12 : p >= 10 ? 8 : 6, y = ((84 - h) / 2).toFixed(1);
+    out += `<rect x="${118 - off - wd}" y="${y}" width="${wd}" height="${h.toFixed(1)}" rx="2" class="pp${p >= 25 ? ' big' : ''}"/>`
+         + `<rect x="${222 + off}" y="${y}" width="${wd}" height="${h.toFixed(1)}" rx="2" class="pp${p >= 25 ? ' big' : ''}"/>`;
+    off += wd + 2; } });
+  return `<svg class="plVis" viewBox="0 0 340 84" aria-hidden="true"><rect x="0" y="38" width="340" height="8" rx="3" class="pbar"/>
+    <rect x="120" y="29" width="5" height="26" rx="1.5" class="pcol"/><rect x="215" y="29" width="5" height="26" rx="1.5" class="pcol"/>${out}</svg>`;
 }
 function renderPlates(){
   const tot = plTotal(), rec = pl.rec, e = rec.ex[pl.j];
@@ -7613,12 +7615,11 @@ function renderPlates(){
   $('plBody').innerHTML = `
     <div class="plTot"><b>${fmtLb(tot)}</b><span>lb</span></div>
     ${plSide()}
-    <div class="plHint">${pl.x2 ? 'Plates on one side. The other side matches.' : 'Every plate on the stack.'}</div>
-    <div class="plRows">${PLATES.map(p => `<div class="plRow" data-p="${p}"><span class="plW">${p}</span><span class="plX">${pl.c[p] ? `${fmtLb(p * pl.c[p] * (pl.x2 ? 2 : 1))} lb` : ''}</span>
+    <div class="plRows">${PLATES.map(p => `<div class="plRow" data-p="${p}"><span class="plW">${p}</span><span class="plX"></span>
       <button type="button" class="plB" data-d="-1" aria-label="One less ${p}" ${pl.c[p] ? '' : 'disabled'}>−</button><b class="plN">${pl.c[p] || 0}</b><button type="button" class="plB" data-d="1" aria-label="One more ${p}">+</button></div>`).join('')}</div>
     <div class="plOpts">
       <label class="plBase"><span>Bar or sled</span><input id="plBaseIn" type="number" inputmode="decimal" step="any" min="0" value="${pl.base || ''}" placeholder="0"><span>lb</span></label>
-      <label class="plSw"><input type="checkbox" id="plX2" ${pl.x2 ? 'checked' : ''}><span>Both sides</span></label>
+      <label class="plSw"><input type="checkbox" id="plX2" ${pl.x2 ? 'checked' : ''}><span>Per side</span></label>
     </div>
     <button type="button" class="primary" id="plUse">Use ${fmtLb(tot)} lb</button>
     ${open ? `<button type="button" class="tool plAll" id="plAll">Use for all ${open + 1} open sets</button>` : ''}`;
@@ -7716,16 +7717,15 @@ function lastPerf(name, excludeN){
 }
 function suggest(te, name, excludeN){
   const p = lastPerf(name, excludeN);
-  if(!p) return {w:'', text: BW_EX.has(name) ? 'No history yet. Start with bodyweight and leave the weight blank; add weight only once every set reaches the top of the range.' : 'There is no history for this lift yet, so pick a weight that leaves about two reps in reserve on the first set.'};
+  if(!p) return {w:'', text: BW_EX.has(name) ? 'First time. Bodyweight.' : 'First time. Pick a weight with about 2 reps left in the tank.'};
   const w = Math.max(...p.sets.map(s=>+s.w || 0));
   const summary = p.sets.map(s=>`${s.w ? s.w : 'bodyweight'}×${s.r}`).join(', ');
   if(p.sets.every(s=>s.r >= te.hi)){
-    if(!te.inc) return {w: w || '', text:`Every set reached ${te.hi} reps last time (${summary}), so make the next round harder with a longer reach or a slower lowering phase.`};
+    if(!te.inc) return {w: w || '', text:`Last: ${summary}. Slow the lowering down.`};
     const up = w + te.inc;
-    return {w:up, text: w ? `Every set reached ${te.hi} reps last time (${summary}), so this time go up to ${up} lb.`
-                          : `Every set reached ${te.hi} reps last time (${summary}), so it is time to add some weight, starting around ${up} lb.`};
+    return {w:up, text: w ? `Last: ${summary}. Go up to ${up} lb.` : `Last: ${summary}. Add weight, about ${up} lb.`};
   }
-  return {w: w || '', text:`Last time you did ${summary}. Stay at ${w || 'bodyweight'} and try to add a rep or two on each set before moving up.`};
+  return {w: w || '', text:`Last: ${summary}. Stay at ${w ? w + ' lb' : 'bodyweight'}, add reps.`};
 }
 function makeRec(n){
   return {done:false, doneOn:null, when:null, ex:tplOf(n).ex.map(e=>{
@@ -7780,7 +7780,7 @@ function renderMonthView(){
   }).join('');
   const busy = new Set(inWeek.map(it=>it.date.getDay()));
   const free = [0,1,2,3,4,5,6].filter(o=>!busy.has(o)).map(o=>DAYS[o]);
-  const freeText = free.length ? `No workout is planned on ${free.join(' or ')} this week.` : 'Every day this week has a workout planned.';
+  const freeText = free.length ? `Off ${free.join(', ')}` : '';
 
   let startCard = '';
   if(nextIdx() === 0){
@@ -7788,8 +7788,8 @@ function renderMonthView(){
     startCard = `<section class="card"><label class="f" for="startDate">First workout</label>
       <input id="startDate" type="date" value="${dkey(s0)}">
       <button class="tool" id="startApply" type="button" style="margin-top:10px">Use this date</button>
-      <p class="muted" style="margin-top:8px">The first workout is on ${esc(longDate(s0))} right now.</p>
-      <p class="muted">The first workout starts on this date, with the next four on the following days and two rest days after that. Pick yesterday or an earlier day if you already did it, then open it from the calendar to fill it in.</p></section>`;
+      <p class="muted" style="margin-top:8px">First workout: ${esc(longDate(s0))}</p>
+</section>`;
   }
 
   // week check: five finished workouts inside one Sunday to Saturday week earns the mark
@@ -7839,7 +7839,7 @@ function renderMonthView(){
     <p class="legend">U marks an upper body day and L a lower body day; a solid blue line under it means finished. If you skip a day, that workout and every one after it slides back a day on its own. Tap any of them to open it, log your sets, and check it off when you finish.</p>
     ${startCard}
     <section class="card"><h2>This week</h2><div class="wrows">${rows || '<p class="empty">Nothing is scheduled this week.</p>'}</div>
-      <p class="muted">${freeText}</p></section>`;
+      ${freeText ? `<p class="muted">${freeText}</p>` : ''}</section>`;
 }
 
 function renderSessionView(){
@@ -7885,18 +7885,16 @@ function renderSessionView(){
   if(n === ni && !rec.done) footer = `<button class="primary" id="doneBtn">Mark workout as finished</button>`;
   else if(rec.done && n === ni-1) footer = `<button class="primary" id="doneBtn">Finished, tap to reopen</button>`;
   else if(rec.done) footer = '';
-  else footer = `<p class="muted">This workout unlocks once the ones before it are finished, and you are welcome to look it over until then.</p>`;
+  else footer = `<p class="muted">Locked until the earlier workouts are done.</p>`;
 
   const push = (n === ni && !rec.done)
-    ? `<button class="tool" id="pushBtn" type="button">Push back a day</button>
-       <p class="muted">Pushing back moves this workout and every one after it a day later.</p>` : '';
+    ? `<button class="tool" id="pushBtn" type="button">Push back a day</button>` : '';
 
   let swapUI = '';
   if(n === ni && !rec.done){
     const end = (Math.floor(n / TPL.length) + 1) * TPL.length - 1, opts = [];
     for(let m = n + 1; m <= end; m++) opts.push(`<option value="${m}">${esc(tplOf(m).name)}, ${esc(tplOf(m).focus)}</option>`);
-    if(opts.length) swapUI = `<select id="swapDay" aria-label="Do a different workout today"><option value="">Do a different workout today</option>${opts.join('')}</select>
-       <p class="muted">Picking one trades places with this workout, so nothing gets skipped and the rest of the week keeps its order.</p>`;
+    if(opts.length) swapUI = `<select id="swapDay" aria-label="Do a different workout today"><option value="">Do a different workout today</option>${opts.join('')}</select>`;
   }
 
   $('tBody').innerHTML = `
@@ -8081,7 +8079,7 @@ function chartSVG(raw, opt){
 
 function measureCard(title, pts, unit, opts){
   const r = inRange(pts);
-  if(r.length < 2) return `<section class="card"><h2>${title}</h2><p class="empty">${pts.length ? 'One more entry and the line starts to draw.' : opts.empty}</p></section>`;
+  if(r.length < 2) return `<section class="card"><h2>${title}</h2><p class="empty">${pts.length ? 'One more entry to draw a line.' : opts.empty}</p></section>`;
   const tr = movingAvg(r, 7), now = tr[tr.length-1].v, first = tr[0].v, d = now - first;
   const days = Math.max(1, Math.round((r[r.length-1].d - r[0].d)/864e5)), span = days >= 14 ? Math.round(days/7) + ' weeks' : days + ' days';
   const delta = Math.abs(d) < 0.05 ? `holding steady over ${span}` : `${d < 0 ? 'down' : 'up'} ${fmt1(Math.abs(d))}${unit === '%' ? ' points' : ' ' + unit} over ${span}`;
@@ -8089,7 +8087,7 @@ function measureCard(title, pts, unit, opts){
     <div class="big num">${fmt1(r[r.length-1].v)}<span class="unit">${unit}</span></div>
     <p class="delta">${delta}, going by the seven day average.</p>
     ${chartSVG(r, {trend:true, label:title, minSpan:opts.minSpan})}
-    <p class="muted">${opts.foot || 'The line is a seven day average, and the dots are single readings.'}</p></section>`;
+    ${opts.foot ? `<p class="muted">${opts.foot}</p>` : ''}</section>`;
 }
 
 function liftHistory(){
@@ -8109,7 +8107,7 @@ function liftHistory(){
 
 function liftCard(){
   const h = liftHistory(), names = Object.keys(h).sort((a,b)=>h[b][h[b].length-1].d - h[a][h[a].length-1].d);
-  if(!names.length) return `<section class="card"><h2>Lift history</h2><p class="empty">Finish a set in the training tab and the lift shows up here with a line that tracks it session by session.</p></section>`;
+  if(!names.length) return `<section class="card"><h2>Lift history</h2><p class="empty">No lifts logged yet.</p></section>`;
   if(!pLift || !h[pLift]) pLift = names[0];
   const all = h[pLift], bw = all.every(x=>x.top === 0);
   const val = x => bw ? x.reps : x.top;
@@ -8118,7 +8116,7 @@ function liftCard(){
   const prTxt = bw ? `${pr.reps} reps` : `${pr.top} lb for ${pr.reps}`;
   const chart = r.length >= 2
     ? chartSVG(r.map(x=>({d:x.d, v:val(x)})), {label:pLift, minSpan:bw ? 4 : 10, pr: r.indexOf(pr) >= 0 ? {d:pr.d, v:val(pr)} : null})
-    : `<p class="empty">${all.length < 2 ? 'Do this lift once more and the line starts to draw.' : 'Only one session falls in this stretch of time, so try a longer range.'}</p>`;
+    : `<p class="empty">${all.length < 2 ? 'One more session to draw a line.' : 'One session in this range.'}</p>`;
   const recent = all.slice(-5).reverse().map(x=>`<div class="hist"><span>${longShort(x.d)}</span><span class="num">${x.sets.map(s=>`${s.w ? s.w : 'bw'}×${s.r}`).join(', ')}</span></div>`).join('');
   return `<section class="card"><h2>Lift history</h2>
     <label class="f" for="liftSel">Exercise</label>
@@ -8135,8 +8133,8 @@ function applyTheme(){
 function backupCard(){
   const lb = state.meta && state.meta.lastBackup;
   return `<section class="card"><h2>Keep a copy</h2>
-    <p class="muted" style="margin-top:0">Everything you log lives in this phone's browser. A backup is a small file you can keep in Files or iCloud, and restoring it puts everything back.</p>
-    <p class="muted">${lb ? 'Last saved ' + longDate(pd(lb)) + '.' : 'No backup has been saved yet.'}</p>
+    
+    <p class="muted">${lb ? 'Last saved ' + longDate(pd(lb)) + '.' : 'No backup yet.'}</p>
     <div class="tools"><button class="tool" id="bkSave" type="button">Save a backup</button>
     <label class="tool" for="bkFile">Restore from a backup</label><input type="file" id="bkFile" accept=".json,application/json" hidden></div>
     <p class="status" id="bkMsg" role="status" aria-live="polite"></p></section>`;
@@ -8188,7 +8186,7 @@ function expenditureCard(){
     if(!x.need.days && x.need.span) bits.push(`weigh-ins spread over ${x.need.span} more days`);
     return `<section class="card xp"><h2>Expenditure</h2>
       <div class="xpCal"><div class="xpBar"><i style="width:${Math.round(100*(1 - left/14))}%"></i></div><span class="num">${left ? left + (left === 1 ? ' day' : ' days') + ' to go' : 'almost there'}</span></div>
-      <p class="muted">Calibrating. It needs ${bits.join(' and ')} in the last four weeks to read what you burn from what you eat and how your weight moves.</p></section>`;
+      <p class="muted">Needs ${bits.join(' and ')}.</p></section>`;
   }
   const w = x.week, steady = Math.abs(w) < 0.1;
   const rate = steady ? '0.0' : (w < 0 ? '\u2212' : '+') + Math.abs(w).toFixed(1);
@@ -8198,18 +8196,17 @@ function expenditureCard(){
       <div><div class="big num">${rate}<span class="unit">lb/wk</span></div><small>${steady ? 'holding steady' : w < 0 ? 'average loss' : 'average gain'}</small></div>
     </div>
     ${goalLine(x)}
-    <p class="muted">From the last four weeks: ${x.days} days of food averaging ${x.intake.toLocaleString()} cal, and ${x.ws} weigh-ins.</p></section>`;
+    <p class="muted">Last 4 weeks · ${x.intake.toLocaleString()} cal avg</p></section>`;
 }
 
 function renderProgress(){
   const s = bodySeries();
   const range = `<div class="range">${RANGES.map(([d,l])=>`<button type="button" data-r="${d}" class="${d === pRange ? 'on' : ''}">${l}</button>`).join('')}</div>`;
   $('pBody').innerHTML = expenditureCard() + range +
-    measureCard('Weight', s.w, 'lb', {empty:'Log your weight in the nutrition tab and a line starts here after the second entry.'}) +
-    measureCard('Waist', s.wa, 'in', {minSpan:1, empty:'Log your waist in the nutrition tab to start this line.'}) +
-    measureCard('Body fat estimate', s.bf, '%', {minSpan:2, empty:'Log your weight and your waist, and an estimate appears here.',
-      foot:'This uses a standard formula for men that needs only weight and waist at the navel, and it can be off by several points. The direction of the line is the useful part.'}) +
-    (s.lean.length >= 2 ? measureCard('Lean mass estimate', s.lean, 'lb', {minSpan:2, foot:'Weight minus the estimated fat. If this holds or rises while your waist shrinks, the recomp is working.'}) : '') +
+    measureCard('Weight', s.w, 'lb', {empty:'No weigh-ins yet.'}) +
+    measureCard('Waist', s.wa, 'in', {minSpan:1, empty:'No waist entries yet.'}) +
+    measureCard('Body fat estimate', s.bf, '%', {minSpan:2, empty:'Needs weight and waist.', foot:'Rough estimate. Watch the direction.'}) +
+    (s.lean.length >= 2 ? measureCard('Lean mass estimate', s.lean, 'lb', {minSpan:2}) : '') +
     liftCard() + backupCard();
   $('pSub').textContent = (Object.keys(state.body).length || Object.keys(state.train.sessions).length) ? '' : 'Nothing to chart yet';
 }
