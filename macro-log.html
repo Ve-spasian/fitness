@@ -7589,7 +7589,8 @@ function openPlates(rec, j, k){
   const e = rec.ex[j], st = e.sets[k], cfg = state.train.plates[e.n] || {base:0, x2:true};
   const row = document.querySelector(`#tBody .setrow[data-j="${j}"][data-k="${k}"]`);
   const w = parseFloat(row && row.querySelector('.sw').value) || +st.w || 0;
-  pl = {rec, j, k, base: +cfg.base || 0, x2: cfg.x2 !== false, c: {}};
+  // a barbell lift always has the bar on it: a standard Olympic bar is 45 lb
+  pl = {rec, j, k, base: +cfg.base || (/barbell/i.test(e.n) ? 45 : 0), x2: cfg.x2 !== false, c: {}};
   if(st.p && Math.abs((pl.base + (pl.x2 ? 2 : 1) * PLATES.reduce((a,p) => a + p * (st.p[p] || 0), 0)) - w) < .01) pl.c = Object.assign({}, st.p);
   else pl.c = plFrom(w, pl.base, pl.x2);
   $('plTitle').textContent = e.n;
