@@ -7447,20 +7447,22 @@ function nextIdx(){ let n = 0; while(sessRec(n) && sessRec(n).done) n++; return 
 // the next one lands on the first allowed day, and the rest follow at one day apart with three days after each block of five
 function sequence(upto, minN){
   const T = state.train, out = [], today = startOfToday();
-  const gap = k => (k % TPL.length === 0 ? 3 : 1);
+  // a block of five runs on back-to-back days from Sunday (so Sunday to Thursday unless a day is skipped),
+  // and the next block starts on the following Sunday
+  const nextDay = (prevD, k) => k % TPL.length === 0 ? addDays(prevD, 7 - prevD.getDay()) : addDays(prevD, 1);
   let n = 0, prev = null;
   while(sessRec(n) && sessRec(n).done){
     const d = pd(sessRec(n).doneOn); out.push({n, date:d, fin:true}); prev = d; n++;
   }
   let d;
-  if(prev) d = addDays(prev, gap(n));
+  if(prev) d = nextDay(prev, n);
   else if(T.start) d = pd(T.start);
   else d = today;
   if(d < today && (prev || !T.start)) d = today;
   if(T.notBefore && pd(T.notBefore) > d) d = pd(T.notBefore);
   out.push({n, date:d, fin:false});
   while(out.length < 800 && (d <= upto || n < minN)){
-    n++; d = addDays(d, gap(n)); out.push({n, date:d, fin:false});
+    n++; d = nextDay(d, n); out.push({n, date:d, fin:false});
   }
   return out;
 }
