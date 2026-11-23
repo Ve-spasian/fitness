@@ -410,6 +410,39 @@
   .yearG i.g{background:var(--earned)}
   .yearG i.w{background:var(--caution);opacity:.5}
   .yearG i.t{box-shadow:0 0 0 1.5px var(--ink)}
+  .pBack{position:absolute;left:var(--s3);top:50%;transform:translateY(-50%);background:none;border:0;color:var(--ink);font-size:28px;line-height:1;padding:6px 12px;cursor:pointer}
+  .planRow{display:flex;width:100%;align-items:center;justify-content:space-between;gap:var(--s3);background:none;border:0;padding:0;color:var(--ink);text-align:left;cursor:pointer;font:inherit}
+  .planRow span{display:flex;flex-direction:column;gap:4px;min-width:0}
+  .planRow small{font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-2)}
+  .planRow b{font-size:14px;font-weight:600}
+  .planRow i{font-style:normal;font-size:22px;color:var(--ink-3)}
+  .pSec{padding:var(--s4) 0;border-bottom:1px dashed var(--rule)}
+  .pSec h2{margin:0 0 var(--s3)}
+  .pGrid{display:grid;grid-template-columns:1fr 1fr;gap:var(--s3)}
+  .pGrid.three{grid-template-columns:1fr 1fr 1fr;margin-top:var(--s3)}
+  .pGrid label{display:flex;flex-direction:column;gap:6px}
+  .pGrid label>span,.pLbl{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-2)}
+  .pLbl{margin:var(--s3) 0 var(--s2)}
+  .pLbl em{font-style:normal;color:var(--caution);text-transform:none;letter-spacing:0;margin-left:6px}
+  .pIn{font-family:var(--mono);font-weight:700;font-size:18px;text-align:center}
+  .pU{position:relative}
+  .pU em{position:absolute;right:10px;top:50%;transform:translateY(-50%);font-style:normal;font-family:var(--mono);font-size:12px;color:var(--ink-3);pointer-events:none}
+  .pSeg{display:grid;grid-template-columns:repeat(var(--n),1fr);gap:6px}
+  .pSeg button,.pDays button{min-height:40px;padding:0 4px;border:1px solid var(--rule-strong);border-radius:var(--r-ctl);background:none;color:var(--ink-2);font:inherit;font-size:13px;cursor:pointer}
+  .pSeg button[aria-pressed="true"],.pDays button[aria-pressed="true"]{border-color:var(--action);color:var(--ink);background:color-mix(in srgb,var(--action) 16%,transparent)}
+  .pDays{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
+  .pDays button{padding:0;font-family:var(--mono);font-weight:700}
+  .pSug{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px var(--s3);margin-top:var(--s3);font-size:13px;color:var(--ink-2)}
+  .pSug b{font-family:var(--mono);color:var(--ink)}
+  .pSug .lnk{padding:0;margin-left:auto}
+  .pProgs{display:flex;flex-direction:column;gap:var(--s2)}
+  .pProg{display:flex;flex-direction:column;align-items:flex-start;gap:3px;padding:12px 14px;border:1px solid var(--rule-strong);border-radius:var(--r-ctl);background:none;color:var(--ink);font:inherit;text-align:left;cursor:pointer}
+  .pProg b{font-size:15px}
+  .pProg span{font-size:12px;color:var(--ink-3)}
+  .pProg[aria-pressed="true"]{border-color:var(--action);background:color-mix(in srgb,var(--action) 12%,transparent)}
+  .pSave{margin-top:var(--s4);width:100%}
+  .pSave:disabled{opacity:.4}
+  .pCancel{display:block;width:100%;margin-top:var(--s2)}
   .xpGoal{display:flex;justify-content:space-between;align-items:baseline;gap:var(--s3);padding:var(--s3) 0;margin-top:var(--s3);border-top:1px dashed var(--rule)}
   .xpGoal>span{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-2);flex:none}
   .xpGoal div{text-align:right;display:flex;flex-direction:column;gap:2px}
@@ -724,7 +757,7 @@
   </div>
 
   <div id="viewP" hidden>
-    <header style="justify-content:center"><div class="date"><b>Progress</b><span id="pSub"></span></div></header>
+    <header style="justify-content:center"><button class="pBack" id="pBack" type="button" aria-label="Back" hidden>‹</button><div class="date"><b id="pTitle">Progress</b><span id="pSub"></span></div></header>
     <section class="card obj" id="bodyCard">
       <div class="bodyHead"><h2>Today’s weigh-in</h2><span class="bodyState" id="bodyState"></span></div>
       <div class="two">
@@ -735,16 +768,7 @@
       <div id="bodyHist"></div>
     </section>
   <section class="card" id="targetsCard">
-    <details>
-      <summary>Daily targets</summary>
-      <div class="targets">
-        <div><label class="f" for="tCal">Calories</label><input id="tCal" type="number" inputmode="numeric"></div>
-        <div><label class="f" for="tPro">Protein g</label><input id="tPro" type="number" inputmode="numeric"></div>
-        <div><label class="f" for="tGoalW">Goal weight lb</label><input id="tGoalW" type="number" inputmode="decimal" step="0.1" placeholder="None"></div>
-        <div hidden><label class="f" for="tCarb">Carbs g</label><input id="tCarb" type="number" inputmode="numeric"></div>
-        <div hidden><label class="f" for="tFat">Fat g</label><input id="tFat" type="number" inputmode="numeric"></div>
-      </div>
-    </details>
+    <button type="button" class="planRow" id="planOpen"><span><small>Your plan</small><b id="planSum"></b></span><i aria-hidden="true">›</i></button>
   </section>
     <div id="pBody"></div>
   </div>
@@ -1096,7 +1120,7 @@ function render(){
 
   renderBody();
 
-  $('tCal').value = g.cal; $('tPro').value = g.pro; $('tGoalW').value = g.goalW || ''; $('tCarb').value = g.carb; $('tFat').value = g.fat;
+  $('planSum').textContent = planSummary();
   renderBatches();
   renderNCal(); paintSky();
   checkEarned();
@@ -1525,9 +1549,7 @@ $('saveBody').onclick = () => {
   clearTimeout(btn._t); btn._t = setTimeout(() => { btn.classList.remove('lockedBtn'); renderBody(); }, 1800);
 };
 ['bW','bWa'].forEach(id => $(id).addEventListener('keydown', ev => { if(ev.key === 'Enter'){ ev.preventDefault(); $('saveBody').click(); } }));
-[['tCal','cal'],['tPro','pro'],['tCarb','carb'],['tFat','fat'],['tGoalW','goalW']].forEach(([id,k])=>{
-  $(id).onchange = () => { state.targets[k] = parseFloat($(id).value) || 0; save(); render(); if(!$('viewP').hidden) renderProgress(); };
-});
+
 
 
 const DB = [];
@@ -7442,8 +7464,67 @@ function startOfToday(){ const n = new Date(); return new Date(n.getFullYear(), 
 const sKey = n => 's' + n;
 const sessRec = n => state.train.sessions[sKey(n)];
 const tmapOf = () => (state.train.tmap = state.train.tmap || {});
-const tplIdx = n => { const m = state.train.tmap; return (m && m[n] != null) ? m[n] : n % TPL.length; };
-const tplOf = n => TPL[tplIdx(n)];
+// ---------- programs ----------
+// alternates come from the five-day plan, so a lift swaps the same way in every program
+const XA = {'Dumbbell lateral raise':['Cable lateral raise','Machine lateral raise'], 'Incline machine press':['Incline dumbbell press','Low-incline Smith press'],
+  'Dumbbell curl':['EZ-bar curl','Cable curl']};
+TPL.forEach(t => t.ex.forEach(e => { if(!XA[e.n]) XA[e.n] = e.alts; }));
+const X = (n, sets, lo, hi, inc, ab) => ({n, sets, lo, hi, inc, alts: XA[n] || [], ab: !!ab});
+const PROGRAMS = {
+  fb3: {name:'Full body', days:[1,3,5], tpl:[
+    {type:'F', name:'Full body A', focus:'chest, quads and back', ex:[
+      X('Barbell bench press',3,5,8,5), X('Linear leg press',3,8,12,10), X('Chest-supported row',3,8,10,5),
+      X('Seated leg curl',3,10,12,5), X('Cable lateral raise',2,12,15,2.5), X('Ab crunch machine',3,10,15,5,1)]},
+    {type:'F', name:'Full body B', focus:'back, glutes and shoulders', ex:[
+      X('Lat pulldown',3,8,12,5), X('Barbell hip thrust',3,6,10,10), X('Seated dumbbell shoulder press',3,8,10,5),
+      X('Dumbbell split squat',3,8,10,5), X('Triceps pushdown',2,10,12,2.5), X('EZ-bar curl',2,8,12,5)]},
+    {type:'F', name:'Full body C', focus:'upper chest, quads and hamstrings', ex:[
+      X('Incline dumbbell press',3,8,10,5), X('V squat',3,6,10,10), X('One-arm dumbbell row',3,10,12,5),
+      X('Lying leg curl',3,10,12,5), X('Face pull',2,12,15,2.5), X('Hanging leg raise',3,10,15,0,1)]}]},
+  ul4: {name:'Upper/lower', days:[1,2,4,5], tpl:[TPL[0], TPL[1], TPL[2], TPL[3]]},
+  ululu5: {name:'Upper/lower/upper', days:[0,1,2,3,4], tpl:TPL},
+  ppl6: {name:'Push/pull/legs', days:[1,2,3,4,5,6], tpl:[
+    {type:'P', name:'Push A', focus:'chest and shoulders', ex:[
+      X('Barbell bench press',4,5,8,5), X('Seated dumbbell shoulder press',3,8,10,5), X('Incline machine press',3,8,12,5),
+      X('Cable lateral raise',3,12,15,2.5), X('Triceps pushdown',3,10,12,2.5)]},
+    {type:'B', name:'Pull A', focus:'back and biceps', ex:[
+      X('Pull-up',4,6,10,5), X('Chest-supported row',3,8,10,5), X('Face pull',3,12,15,2.5),
+      X('EZ-bar curl',3,8,12,5), X('Hanging leg raise',3,10,15,0,1)]},
+    Object.assign({}, TPL[1], {name:'Legs A'}),
+    {type:'P', name:'Push B', focus:'upper chest and arms', ex:[
+      X('Incline dumbbell press',4,8,10,5), X('Machine chest press',3,8,12,5), X('Machine shoulder press',3,8,12,5),
+      X('Dumbbell lateral raise',3,12,15,2.5), X('Overhead cable triceps extension',3,10,12,2.5), X('Ab crunch machine',3,10,15,5,1)]},
+    {type:'B', name:'Pull B', focus:'lats and rear delts', ex:[
+      X('Lat pulldown',4,8,12,5), X('Seated cable row',3,8,12,5), X('One-arm dumbbell row',3,10,12,5),
+      X('Reverse pec deck',3,12,15,2.5), X('Dumbbell curl',3,8,12,5)]},
+    Object.assign({}, TPL[3], {name:'Legs B'})]}
+};
+const PROG_ORDER = ['fb3','ul4','ululu5','ppl6'];
+// which program a session belongs to: switching programs starts the new one at the next unfinished session,
+// so finished workouts keep the program they were done under
+function progAt(n){
+  const ps = state.train.progs || [{id:'ululu5', from:0}];
+  let cur = ps[0];
+  ps.forEach(p => { if(p.from <= n) cur = p; });
+  return {id: cur.id, from: cur.from, p: PROGRAMS[cur.id] || PROGRAMS.ululu5};
+}
+const progLen = n => progAt(n).p.tpl.length;
+const blockPos = n => { const a = progAt(n); return ((n - a.from) % a.p.tpl.length + a.p.tpl.length) % a.p.tpl.length; };
+const blockEnd = n => n - blockPos(n) + progLen(n) - 1;
+const trainDays = () => { const d = state.train.days; return d && d.length ? d.slice().sort((a,b) => a-b) : progAt(nextIdx()).p.days; };
+const tplIdx = n => { const m = state.train.tmap, L = progLen(n); return (m && m[n] != null && m[n] < L) ? m[n] : blockPos(n); };
+const tplOf = n => progAt(n).p.tpl[tplIdx(n)];
+// change program and/or training days. a new program starts at the next unfinished workout.
+function setProgram(id, days){
+  const T = state.train, nx = nextIdx();
+  T.progs = T.progs || [{id:'ululu5', from:0}];
+  if(progAt(nx).id !== id){
+    T.progs = T.progs.filter(p => p.from < nx).concat([{id, from:nx}]);
+    Object.keys(T.sessions).forEach(k => { const n = +k.slice(1); if(n >= nx && !T.sessions[k].done) delete T.sessions[k]; });
+    if(T.tmap) Object.keys(T.tmap).forEach(k => { if(+k >= nx) delete T.tmap[k]; });
+  }
+  T.days = days.slice().sort((a,b) => a-b);
+}
 
 // finished workouts are numbered in order; the next unfinished one is the pointer everything else hangs from
 function nextIdx(){ let n = 0; while(sessRec(n) && sessRec(n).done) n++; return n; }
@@ -7452,9 +7533,17 @@ function nextIdx(){ let n = 0; while(sessRec(n) && sessRec(n).done) n++; return 
 // the next one lands on the first allowed day, and the rest follow at one day apart with three days after each block of five
 function sequence(upto, minN){
   const T = state.train, out = [], today = startOfToday();
-  // a block of five runs on back-to-back days from Sunday (so Sunday to Thursday unless a day is skipped),
-  // and the next block starts on the following Sunday
-  const nextDay = (prevD, k) => k % TPL.length === 0 ? addDays(prevD, 7 - prevD.getDay()) : addDays(prevD, 1);
+  // workouts land on the chosen training days. a block that runs late (a skipped day) spills onto the next
+  // day rather than into next week, and the next block starts on next week's first training day
+  const days = trainDays();
+  const nextTrain = d => { for(let i = 1; i <= 7; i++){ const x = addDays(d, i); if(days.includes(x.getDay())) return x; } return addDays(d, 1); };
+  const nextDay = (prevD, k) => {
+    // a new block waits for next week's first training day; a freshly switched program starts right away
+    if(blockPos(k) === 0) return k === progAt(k).from && k > 0 ? nextTrain(prevD) : onOrAfter(addDays(prevD, 7 - prevD.getDay()));
+    const x = nextTrain(prevD);
+    return x.getDay() > prevD.getDay() ? x : addDays(prevD, 1);
+  };
+  const onOrAfter = d => days.includes(d.getDay()) ? d : nextTrain(d);
   let n = 0, prev = null;
   while(sessRec(n) && sessRec(n).done){
     const d = pd(sessRec(n).doneOn); out.push({n, date:d, fin:true}); prev = d; n++;
@@ -7462,8 +7551,8 @@ function sequence(upto, minN){
   let d;
   if(prev) d = nextDay(prev, n);
   else if(T.start) d = pd(T.start);
-  else d = today;
-  if(d < today && (prev || !T.start)) d = today;
+  else d = onOrAfter(today);
+  if(d < today && (prev || !T.start)) d = onOrAfter(today);
   if(T.notBefore && pd(T.notBefore) > d) d = pd(T.notBefore);
   out.push({n, date:d, fin:false});
   while(out.length < 800 && (d <= upto || n < minN)){
@@ -7798,11 +7887,11 @@ function renderMonthView(){
   for(let ws = gridStart; ws <= gridEnd; ws = addDays(ws, 7)){
     const we = addDays(ws, 6), a = dkey(ws), b = dkey(we);
     const cnt = seq.filter(it => it.fin && dkey(it.date) >= a && dkey(it.date) <= b).length;
-    const full = cnt >= TPL.length, past = we < today, cur = ws <= today && today <= we;
+    const wLen = progLen(nextIdx()), full = cnt >= wLen, past = we < today, cur = ws <= today && today <= we;
     if(full && ws.getMonth() === first.getMonth() || full && we.getMonth() === first.getMonth()) fullWeeks++;
-    const dots = Array.from({length:TPL.length}, (_, i) => `<i class="${i < cnt ? 'on' : ''}"></i>`).join('');
+    const dots = Array.from({length:wLen}, (_, i) => `<i class="${i < cnt ? 'on' : ''}"></i>`).join('');
     const lbl = ws.toLocaleDateString(undefined,{month:'short',day:'numeric'}) + ' to ' + we.toLocaleDateString(undefined,{month:'short',day:'numeric'});
-    wkRows += `<div class="wk ${full ? 'full' : ''} ${cur ? 'cur' : ''} ${past && !full ? 'miss' : ''}"><span class="wl">${lbl}</span><span class="wd">${dots}</span><span class="wm">${full ? '\u2713' : (cnt ? cnt + ' of ' + TPL.length : (past ? '' : ''))}</span></div>`;
+    wkRows += `<div class="wk ${full ? 'full' : ''} ${cur ? 'cur' : ''} ${past && !full ? 'miss' : ''}"><span class="wl">${lbl}</span><span class="wd">${dots}</span><span class="wm">${full ? '\u2713' : (cnt ? cnt + ' of ' + wLen : '')}</span></div>`;
   }
 
   // the top: today's workout (or the next one), what it works, and one button to do it
@@ -7816,7 +7905,7 @@ function renderMonthView(){
     // can't do this one today: swap in another from this block of five, or push everything back a day
     let heroOpts = '';
     if(!tIt.fin && tIt.n === nextIdx()){
-      const end = (Math.floor(tIt.n / TPL.length) + 1) * TPL.length - 1, opts = [];
+      const end = blockEnd(tIt.n), opts = [];
       for(let m = tIt.n + 1; m <= end; m++) opts.push(`<option value="${m}">${esc(tplOf(m).name)}, ${esc(tplOf(m).focus)}</option>`);
       heroOpts = `<div class="tOpts">${opts.length ? `<label class="chipB chipSel">Swap workout<select id="heroSwap" data-n="${tIt.n}" aria-label="Swap in a different workout"><option value="">Swap workout</option>${opts.join('')}</select></label>` : ''}<button class="chipB" id="heroPush" type="button">Push back a day</button></div>`;
     }
@@ -7837,7 +7926,6 @@ function renderMonthView(){
       <div class="dow"><span>Sun</span><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span></div>
       <div class="grid">${cells}</div>
     </section>
-    <p class="legend">U marks an upper body day and L a lower body day; a solid blue line under it means finished. If you skip a day, that workout and every one after it slides back a day on its own. Tap any of them to open it, log your sets, and check it off when you finish.</p>
     ${startCard}
     <section class="card"><h2>This week</h2><div class="wrows">${rows || '<p class="empty">Nothing is scheduled this week.</p>'}</div>
       ${freeText ? `<p class="muted">${freeText}</p>` : ''}</section>`;
@@ -7893,7 +7981,7 @@ function renderSessionView(){
 
   let swapUI = '';
   if(n === ni && !rec.done){
-    const end = (Math.floor(n / TPL.length) + 1) * TPL.length - 1, opts = [];
+    const end = blockEnd(n), opts = [];
     for(let m = n + 1; m <= end; m++) opts.push(`<option value="${m}">${esc(tplOf(m).name)}, ${esc(tplOf(m).focus)}</option>`);
     if(opts.length) swapUI = `<select id="swapDay" aria-label="Do a different workout today"><option value="">Do a different workout today</option>${opts.join('')}</select>`;
   }
@@ -7990,6 +8078,7 @@ $('tNext').onclick = () => { tMonth = new Date(tMonth.getFullYear(), tMonth.getM
 
 function showTab(t){
   if(t !== 't') openN = null;   // leaving Training closes an open workout, so it comes back on the calendar
+  if(t !== 'p' && planOpen && state.meta.setUp){ planOpen = false; planD = null; }
   document.documentElement.classList.toggle('home', t === 'n' && nMode === 'cal');
   if(t === 'n' && nMode === 'cal') lgCascade = true;
   document.documentElement.classList.toggle('onL', t === 'l');
@@ -8025,8 +8114,8 @@ function movingAvg(pts, days){
     return {d:p.d, v:w.reduce((a,q)=>a+q.v, 0)/w.length};
   });
 }
-// YMCA estimate for men: needs only weight in pounds and waist in inches at the navel
-function bodyFatPct(w, wa){ return Math.max(3, Math.min(60, (-98.42 + 4.15*wa - 0.082*w)/w*100)); }
+// YMCA estimate: needs only weight in pounds and waist in inches at the navel
+function bodyFatPct(w, wa){ const f = state.profile && state.profile.sex === 'f'; return Math.max(3, Math.min(60, ((f ? -76.76 : -98.42) + 4.15*wa - 0.082*w)/w*100)); }
 
 function bodySeries(){
   const keys = Object.keys(state.body).sort(), out = {w:[], wa:[], bf:[], lean:[]};
@@ -8200,7 +8289,11 @@ function expenditureCard(){
     <p class="muted">Last 4 weeks · ${x.intake.toLocaleString()} cal avg</p></section>`;
 }
 
+var planOpen = false, planD = null;
 function renderProgress(){
+  $('bodyCard').hidden = $('targetsCard').hidden = planOpen;
+  $('pBack').hidden = !planOpen || !state.meta.setUp; $('pTitle').textContent = planOpen ? (state.meta.setUp ? 'Your plan' : 'Set up') : 'Progress';
+  if(planOpen){ $('pSub').textContent = ''; $('pBody').innerHTML = planHTML(); return; }
   const s = bodySeries();
   const range = `<div class="range">${RANGES.map(([d,l])=>`<button type="button" data-r="${d}" class="${d === pRange ? 'on' : ''}">${l}</button>`).join('')}</div>`;
   $('pBody').innerHTML = expenditureCard() + range +
@@ -8213,13 +8306,121 @@ function renderProgress(){
 }
 
 $('pBody').addEventListener('click', ev=>{
-  if(ev.target.closest('#xpSetGoal')){ const dt = $('targetsCard').querySelector('details'); dt.open = true; $('targetsCard').scrollIntoView({block:'center'}); $('tGoalW').focus(); return; }
+  if(ev.target.closest('#xpSetGoal')){ openPlan(); return; }
   const r = ev.target.closest('.range button'); if(r){ pRange = +r.dataset.r; renderProgress(); return; }
   if(ev.target.closest('#bkSave')) exportData();
 });
 $('pBody').addEventListener('change', ev=>{
   if(ev.target.id === 'liftSel'){ pLift = ev.target.value; renderProgress(); }
   else if(ev.target.id === 'bkFile'){ const f = ev.target.files[0]; if(f) importData(f); ev.target.value = ''; }
+});
+
+/* ---------- your plan: goals, food targets, training ---------- */
+const DOW1 = ['S','M','T','W','T','F','S'];
+const PACES = [[-1.5,'\u22121.5'],[-1,'\u22121'],[-0.5,'\u22120.5'],[0,'Hold'],[0.5,'+0.5']];
+const ACTS = [[1.3,'Sitting'],[1.45,'Some walking'],[1.6,'On my feet']];
+function latestWeight(){ const k = Object.keys(state.body).filter(k => state.body[k].w).sort().pop(); return k ? +state.body[k].w : null; }
+function planSummary(){
+  const g = state.targets, pr = progAt(nextIdx());
+  return `${(g.cal || 0).toLocaleString()} cal \u00b7 ${g.pro || 0} g protein${g.goalW ? ' \u00b7 ' + g.goalW + ' lb goal' : ''} \u00b7 ${pr.p.name}, ${trainDays().length} days`;
+}
+function openPlan(){
+  const g = state.targets, pf = state.profile || {};
+  planD = {cal: g.cal || '', pro: g.pro || '', goalW: g.goalW || '', w: latestWeight() || '', sex: pf.sex || 'm', age: pf.age || '', ft: pf.htIn ? Math.floor(pf.htIn / 12) : '',
+    inch: pf.htIn ? pf.htIn % 12 : '', act: pf.act || 1.3, pace: pf.pace != null ? pf.pace : -1, prog: progAt(nextIdx()).id, days: trainDays().slice()};
+  planOpen = true; showTab('p'); window.scrollTo(0, 0);
+}
+function closePlan(){ planOpen = false; planD = null; renderProgress(); window.scrollTo(0, 0); }
+// what to eat: measured burn once it's calibrated, otherwise an estimate from size, age and how active you are
+function planSuggest(d){
+  const w = +d.w, ht = (+d.ft || 0) * 12 + (+d.inch || 0), age = +d.age;
+  const xp = expenditure();
+  let burn = null, from = '';
+  if(xp.ready){ burn = xp.tdee; from = 'measured'; }
+  else if(w && ht && age){
+    const bmr = 10 * w * 0.4536 + 6.25 * ht * 2.54 - 5 * age + (d.sex === 'f' ? -161 : 5);
+    burn = bmr * d.act + (PROGRAMS[d.prog] ? d.days.length * 250 / 7 : 0); from = 'estimated';
+  }
+  const cal = burn ? Math.max(d.sex === 'f' ? 1200 : 1500, Math.round((burn + d.pace * 500) / 10) * 10) : null;
+  const pw = +d.goalW || w;
+  return {cal, burn: burn && Math.round(burn / 10) * 10, from, pro: pw ? Math.round(pw / 5) * 5 : null};
+}
+function planHTML(){
+  const d = planD, sg = planSuggest(d), need = PROGRAMS[d.prog].tpl.length, ok = d.days.length === need;
+  const seg = (key, opts) => `<div class="pSeg" data-k="${key}" style="--n:${opts.length}">${opts.map(([v,l]) => `<button type="button" data-v="${v}" aria-pressed="${String(d[key]) === String(v)}">${l}</button>`).join('')}</div>`;
+  const num = (key, ph, step) => `<input class="pIn" data-k="${key}" type="number" inputmode="decimal" step="${step || 'any'}" min="0" value="${d[key]}" placeholder="${ph || ''}">`;
+  const progs = PROG_ORDER.map(id => { const p = PROGRAMS[id]; return `<button type="button" class="pProg" data-prog="${id}" aria-pressed="${d.prog === id}">
+      <b>${p.name}</b><span>${p.tpl.length} days \u00b7 ${p.tpl.map(t => t.name).join(', ')}</span></button>`; }).join('');
+  return `
+  <section class="pSec"><h2>Goal</h2>
+    <div class="pGrid"><label><span>Weight now</span><div class="pU">${num('w','',0.1)}<em>lb</em></div></label>
+      <label><span>Goal weight</span><div class="pU">${num('goalW','',0.1)}<em>lb</em></div></label></div>
+    <div class="pLbl">Pace, lb a week</div>${seg('pace', PACES)}
+  </section>
+  <section class="pSec"><h2>About you</h2>
+    ${seg('sex', [['m','Male'],['f','Female']])}
+    <div class="pGrid three"><label><span>Age</span>${num('age','',1)}</label>
+      <label><span>Height</span><div class="pU">${num('ft','',1)}<em>ft</em></div></label>
+      <label><span>&nbsp;</span><div class="pU">${num('inch','',1)}<em>in</em></div></label></div>
+    <div class="pLbl">Day to day</div>${seg('act', ACTS)}
+  </section>
+  <section class="pSec"><h2>Food</h2>
+    <div class="pGrid"><label><span>Calories</span>${num('cal','',10)}</label><label><span>Protein, g</span>${num('pro','',5)}</label></div>
+    <div class="pSug">${sg.cal ? `<span>Suggested <b>${sg.cal.toLocaleString()}</b> cal${sg.from === 'measured' ? ' from your measured burn' : ''}</span>` : '<span>Fill in about you for a suggestion</span>'}
+      ${sg.pro ? `<span><b>${sg.pro}</b> g protein</span>` : ''}
+      ${sg.cal || sg.pro ? `<button type="button" class="lnk" id="pUse">Use</button>` : ''}</div>
+  </section>
+  <section class="pSec"><h2>Training</h2>
+    <div class="pProgs">${progs}</div>
+    <div class="pLbl">Days${ok ? '' : ` <em>pick ${need}</em>`}</div>
+    <div class="pDays">${DOW1.map((l, i) => `<button type="button" data-day="${i}" aria-pressed="${d.days.includes(i)}" aria-label="${DAYS[i]}">${l}</button>`).join('')}</div>
+  </section>
+  <button type="button" class="primary pSave" id="pSave" ${ok && +d.cal > 0 ? '' : 'disabled'}>${state.meta.setUp ? 'Save' : 'Start'}</button>
+  ${state.meta.setUp ? '<button type="button" class="tool pCancel" id="pCancel">Cancel</button>' : ''}`;
+}
+function planRefresh(){
+  // re-render without losing the field being typed in
+  const a = document.activeElement, k = a && a.dataset && a.dataset.k, pos = k && a.selectionStart;
+  $('pBody').innerHTML = planHTML();
+  if(k){ const el = $('pBody').querySelector(`.pIn[data-k="${k}"]`); if(el){ el.focus(); try{ el.setSelectionRange(pos, pos); }catch(e){} } }
+}
+function savePlan(){
+  const d = planD, g = state.targets;
+  g.cal = Math.round(+d.cal) || g.cal; g.pro = Math.round(+d.pro) || 0; g.goalW = +d.goalW || 0;
+  const ht = (+d.ft || 0) * 12 + (+d.inch || 0);
+  state.profile = {sex: d.sex, age: +d.age || null, htIn: ht || null, act: +d.act, pace: +d.pace};
+  // today's weight, if it's new
+  const tk = dkey(new Date()), lw = latestWeight();
+  if(+d.w && +d.w !== lw){ state.body[tk] = Object.assign({}, state.body[tk], {w: +d.w}); }
+  setProgram(d.prog, d.days);
+  state.meta.setUp = true;
+  save(); render(); renderTrain(); closePlan();
+}
+$('planOpen').onclick = openPlan;
+$('pBack').onclick = () => { if(state.meta.setUp) closePlan(); };
+$('pBody').addEventListener('click', ev => {
+  if(!planOpen) return;
+  const t = ev.target, d = planD;
+  const sb = t.closest('.pSeg button');
+  if(sb){ const k = sb.parentNode.dataset.k, v = sb.dataset.v; d[k] = k === 'sex' ? v : +v; planRefresh(); return; }
+  const pg = t.closest('.pProg');
+  if(pg){ d.prog = pg.dataset.prog; if(d.days.length !== PROGRAMS[d.prog].tpl.length) d.days = PROGRAMS[d.prog].days.slice(); planRefresh(); return; }
+  const dy = t.closest('.pDays button');
+  if(dy){ const i = +dy.dataset.day, need = PROGRAMS[d.prog].tpl.length;
+    if(d.days.includes(i)) d.days = d.days.filter(x => x !== i);
+    else { d.days.push(i); if(d.days.length > need) d.days.shift(); }
+    planRefresh(); return; }
+  if(t.closest('#pUse')){ const sg = planSuggest(d); if(sg.cal) d.cal = sg.cal; if(sg.pro) d.pro = sg.pro; planRefresh(); return; }
+  if(t.closest('#pSave')){ savePlan(); return; }
+  if(t.closest('#pCancel')){ closePlan(); return; }
+}, true);
+$('pBody').addEventListener('input', ev => {
+  if(!planOpen || !ev.target.classList.contains('pIn')) return;
+  planD[ev.target.dataset.k] = ev.target.value;
+  // only the suggestion line and the save button depend on what's typed
+  const tmp = document.createElement('div'); tmp.innerHTML = planHTML();
+  const a = $('pBody').querySelector('.pSug'), b = tmp.querySelector('.pSug'); if(a && b) a.innerHTML = b.innerHTML;
+  const sv = $('pSave'); if(sv) sv.disabled = tmp.querySelector('#pSave').disabled;
 });
 
 /* ---------- backup and restore ---------- */
@@ -8264,6 +8465,9 @@ function normalizeState(){
   state.days = state.days || {}; state.body = state.body || {}; state.custom = state.custom || [];
   state.train = state.train || {}; state.train.sessions = state.train.sessions || {}; state.meta = state.meta || {};
   state.recipes = state.recipes || []; state.off = state.off || {}; state.train.plates = state.train.plates || {};
+  if(!state.train.progs) state.train.progs = [{id:'ululu5', from:0}];
+  if(!state.train.days) state.train.days = PROGRAMS[state.train.progs[state.train.progs.length-1].id].days.slice();
+  if(state.meta.setUp == null) state.meta.setUp = !!(Object.keys(state.days).length || Object.keys(state.body).length || Object.keys(state.train.sessions).length);
   renameLifts();
   fixFutureDates();
 }
@@ -8424,6 +8628,7 @@ load().then(()=>{
   normalizeState();
   applyTheme();
   render();
+  if(!state.meta.setUp) openPlan();   // someone new: set up goals before anything else
   setTimeout(() => document.documentElement.classList.add('ready'), 700);
   if(window.__hideSplash) window.__hideSplash();
   if('serviceWorker' in navigator && location.protocol === 'https:'){
