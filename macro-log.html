@@ -7552,8 +7552,8 @@ function sequence(upto, minN){
   if(prev) d = nextDay(prev, n);
   else if(T.start) d = pd(T.start);
   else d = onOrAfter(today);
-  if(d < today && (prev || !T.start)) d = onOrAfter(today);
-  if(T.notBefore && pd(T.notBefore) > d) d = pd(T.notBefore);
+  // a workout you didn't get to just moves to today: mid-week it's done the next day, a new week waits for a training day
+  if(d < today && (prev || !T.start)) d = blockPos(n) === 0 ? onOrAfter(today) : today;
   out.push({n, date:d, fin:false});
   while(out.length < 800 && (d <= upto || n < minN)){
     n++; d = nextDay(d, n); out.push({n, date:d, fin:false});
@@ -7907,7 +7907,7 @@ function renderMonthView(){
     if(!tIt.fin && tIt.n === nextIdx()){
       const end = blockEnd(tIt.n), opts = [];
       for(let m = tIt.n + 1; m <= end; m++) opts.push(`<option value="${m}">${esc(tplOf(m).name)}, ${esc(tplOf(m).focus)}</option>`);
-      heroOpts = `<div class="tOpts">${opts.length ? `<label class="chipB chipSel">Swap workout<select id="heroSwap" data-n="${tIt.n}" aria-label="Swap in a different workout"><option value="">Swap workout</option>${opts.join('')}</select></label>` : ''}<button class="chipB" id="heroPush" type="button">Push back a day</button></div>`;
+      heroOpts = `<div class="tOpts">${opts.length ? `<label class="chipB chipSel">Swap workout<select id="heroSwap" data-n="${tIt.n}" aria-label="Swap in a different workout"><option value="">Swap workout</option>${opts.join('')}</select></label>` : ''}</div>`;
     }
     const btn = tIt.fin ? 'Review today\u2019s workout' : logged ? 'Continue today\u2019s workout' : isToday ? 'Start today\u2019s workout' : 'Rest day \u00b7 open ' + tp.name;
     hero = `<section class="card obj tHero ${tIt.fin ? 'fin' : ''}">
@@ -7976,8 +7976,7 @@ function renderSessionView(){
   else if(rec.done) footer = '';
   else footer = `<p class="muted">Locked until the earlier workouts are done.</p>`;
 
-  const push = (n === ni && !rec.done)
-    ? `<button class="tool" id="pushBtn" type="button">Push back a day</button>` : '';
+  const push = '';
 
   let swapUI = '';
   if(n === ni && !rec.done){
@@ -7994,7 +7993,7 @@ function renderSessionView(){
     <p class="muted" id="setCount">${nOk} of ${nAll} sets logged so far.</p>
     ${exHtml}
     ${footer}
-    ${push || swapUI ? `<details class="more"><summary>Can\u2019t train today?</summary>${push}${swapUI}</details>` : ''}`;
+    ${push || swapUI ? `<details class="more"><summary>Swap workout</summary>${push}${swapUI}</details>` : ''}`;
 }
 
 function setSetCount(){
@@ -8011,7 +8010,6 @@ $('tBody').addEventListener('click', ev=>{
   if(t.closest('#tBack')){ openN = null; renderTrain(); window.scrollTo(0,0); return; }
   const go = t.closest('.bigBtn[data-open]');
   if(go){ openN = +go.dataset.open; renderTrain(); window.scrollTo(0,0); return; }
-  if(t.closest('#heroPush')){ const sN = infoOf(nextIdx()); state.train.notBefore = dkey(addDays(sN.date, 1)); save(); renderTrain(); return; }
   if(t.closest('#startApply')){ const v = $('startDate').value; if(v){ state.train.start = v; state.train.notBefore = null; save(); renderTrain(); } return; }
   const rec = openN !== null && sessRec(openN); if(!rec) return;
   const plt = t.closest('.plt');
@@ -8032,9 +8030,6 @@ $('tBody').addEventListener('click', ev=>{
   if(add){
     const ex = rec.ex[+add.closest('.ex').dataset.j], lastSet = ex.sets[ex.sets.length-1];
     ex.sets.push({w:lastSet ? lastSet.w : '', r:'', ok:false, auto:lastSet ? lastSet.auto : true}); save(); renderTrain(); return;
-  }
-  if(t.closest('#pushBtn')){
-    const s = infoOf(openN); state.train.notBefore = dkey(addDays(s.date, 1)); save(); renderTrain(); return;
   }
   if(t.closest('#doneBtn')){
     const ni = nextIdx();
@@ -8465,6 +8460,7 @@ function normalizeState(){
   state.days = state.days || {}; state.body = state.body || {}; state.custom = state.custom || [];
   state.train = state.train || {}; state.train.sessions = state.train.sessions || {}; state.meta = state.meta || {};
   state.recipes = state.recipes || []; state.off = state.off || {}; state.train.plates = state.train.plates || {};
+  state.train.notBefore = null;   // push back is gone: a missed workout slides to today on its own
   if(!state.train.progs) state.train.progs = [{id:'ululu5', from:0}];
   if(!state.train.days) state.train.days = PROGRAMS[state.train.progs[state.train.progs.length-1].id].days.slice();
   if(state.meta.setUp == null) state.meta.setUp = !!(Object.keys(state.days).length || Object.keys(state.body).length || Object.keys(state.train.sessions).length);
