@@ -8258,7 +8258,7 @@ function measureCard(title, pts, unit, opts){
   const days = Math.max(1, Math.round((r[r.length-1].d - r[0].d)/864e5)), span = days >= 14 ? Math.round(days/7) + ' weeks' : days + ' days';
   const delta = Math.abs(d) < 0.05 ? `holding steady over ${span}` : `${d < 0 ? 'down' : 'up'} ${fmt1(Math.abs(d))}${unit === '%' ? ' points' : ' ' + unit} over ${span}`;
   return `<section class="card"><h2>${title}</h2>
-    <div class="big num">${fmt1(r[r.length-1].v)}<span class="unit">${unit}</span></div>
+    <div class="big num">${fmt1(now)}<span class="unit">${unit}</span></div>
     <p class="delta">${delta}, going by the seven day average.</p>
     ${chartSVG(r, {trend:true, label:title, minSpan:opts.minSpan})}
     ${opts.foot ? `<p class="muted">${opts.foot}</p>` : ''}</section>`;
