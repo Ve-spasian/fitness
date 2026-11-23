@@ -7837,7 +7837,9 @@ function suggestBase(te, name, excludeN){
   const summary = p.sets.map(s=>`${s.w ? s.w : 'bodyweight'}×${s.r}`).join(', ');
   if(p.sets.every(s=>s.r >= te.hi)){
     if(!te.inc) return {w: w || '', text:`Last: ${summary}. Slow the lowering down.`};
-    const up = w + te.inc;
+    // about 5% of the weight, in whole steps of the smallest jump the lift allows (te.inc):
+    // 120 bench goes up 5, a 400 leg press goes up 20, a 25 lb lateral still goes up 2.5
+    const up = w + Math.max(1, Math.round(w * 0.05 / te.inc)) * te.inc;
     return {w:up, text: w ? `Last: ${summary}. Go up to ${up} lb.` : `Last: ${summary}. Add weight, about ${up} lb.`};
   }
   return {w: w || '', text:`Last: ${summary}. Stay at ${w ? w + ' lb' : 'bodyweight'}, add reps.`};
