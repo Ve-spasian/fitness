@@ -343,6 +343,7 @@
   .sRow span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .sRow small{font-family:var(--mono);font-size:12px;color:var(--ink-2)}
   .sRow .icoTile{width:36px;height:36px;border-radius:6px} .sRow .ico{width:24px;height:24px}
+  .sRow.sWeb span:nth-child(2){color:var(--ink-2)} .sRow.sNote{cursor:default;color:var(--ink-2)}
   .sIco{width:32px;height:32px;display:flex;align-items:center;justify-content:center;color:var(--ink-2)}
   #tray .primary{margin-top:var(--s2)}
   #tray details.custom{margin-top:0;border-top:0;padding-top:var(--s2)}
@@ -1914,6 +1915,262 @@ F('Lemonade',40,0.1,10,0,{cup:248,glass:248});
 
 
 
+// common brands (label values, per 100 g; serving = the label's serving)
+F('M&M\'s, milk chocolate|m&m|m&ms|mms|m and ms|plain m&ms',510.6,4.3,72.3,21.3,{serving:47,bag:47,'share bag':87,piece:0.9});
+F('M&M\'s, peanut|peanut m&m|peanut m&ms|peanut mms',510.2,10.2,61.2,26.5,{serving:49,bag:49,'share bag':85,piece:2.4});
+F('M&M\'s, peanut butter|peanut butter m&ms|peanut butter mms',521.7,10.9,60.9,28.3,{serving:46,bag:46});
+F('M&M\'s, crispy|crispy m&ms|crispy mms',500.0,5.0,70.0,22.5,{serving:40,bag:40});
+F('M&M\'s, fun size|fun size m&ms|fun size mms',500.0,5.6,72.2,19.4,{serving:18,each:18});
+F('Snickers|snickers bar',474.4,7.6,62.6,22.8,{serving:52.7,bar:52.7,each:52.7});
+F('Snickers, fun size|fun size snickers',470.6,5.9,64.7,23.5,{serving:17,each:17});
+F('Reese\'s Peanut Butter Cups|reeses|reese|reese\'s cups|peanut butter cups',500.0,11.9,57.1,31.0,{serving:42,pack:42,piece:21});
+F('Reese\'s Pieces|reeses pieces',465.1,11.6,58.1,23.3,{serving:43,bag:43});
+F('Reese\'s Big Cup|reeses big cup',538.5,12.8,53.8,30.8,{serving:39,each:39});
+F('Kit Kat|kitkat',500.0,7.1,64.3,26.2,{serving:42,bar:42,piece:10.5});
+F('Twix|twix bar',493.1,3.9,65.1,23.7,{serving:50.7,pack:50.7,piece:25.3});
+F('Milky Way|milky way bar',459.8,3.8,70.9,17.2,{serving:52.2,bar:52.2,each:52.2});
+F('3 Musketeers|three musketeers',441.2,1.8,77.2,12.9,{serving:54.4,bar:54.4,each:54.4});
+F('Butterfinger|butterfinger bar',463.0,5.6,70.4,18.5,{serving:54,bar:54,each:54});
+F('Hershey\'s milk chocolate bar|hersheys bar|hershey bar|hersheys',511.6,7.0,60.5,30.2,{serving:43,bar:43,each:43});
+F('Hershey\'s Kisses|hersheys kisses|kisses',487.8,7.3,61.0,29.3,{serving:41,piece:4.6});
+F('Hershey\'s Cookies \'n\' Creme|cookies n creme bar',511.6,7.0,60.5,27.9,{serving:43,bar:43});
+F('Almond Joy|almond joy bar',488.9,4.4,57.8,28.9,{serving:45,pack:45,piece:22.5});
+F('Skittles|skittles original',406.5,0.0,91.1,4.1,{serving:61.5,bag:61.5,'share bag':113});
+F('Starburst|starburst chews',408.9,0.0,81.8,8.5,{serving:58.7,pack:58.7,piece:5});
+F('Sour Patch Kids|sour patch',392.9,0.0,96.4,0.0,{serving:28,bag:56,handful:28});
+F('Swedish Fish|swedish fish',375.0,0.0,90.0,0.0,{serving:40,bag:57,piece:4.5});
+F('Haribo Goldbears|haribo|gummy bears haribo',333.3,6.7,76.7,0.0,{serving:30,bag:142,piece:2.3});
+F('Twizzlers|twizzlers strawberry',355.6,2.2,80.0,1.1,{serving:45,each:11});
+F('Nerds|nerds candy',400.0,0.0,93.3,0.0,{serving:15,box:46.7});
+F('Jolly Rancher|jolly ranchers',352.9,0.0,88.2,0.0,{serving:17,each:6});
+F('Dove dark chocolate promises|dove dark|dove chocolate',525.0,5.0,60.0,32.5,{serving:40,each:8.5});
+F('Lindt Lindor truffles, milk|lindor|lindt truffles',638.9,5.6,41.7,50.0,{serving:36,each:12});
+F('Ghirardelli dark chocolate squares|ghirardelli|ghirardelli squares',516.1,6.5,54.8,35.5,{serving:31,each:10.6});
+F('York Peppermint Pattie|york peppermint patty|york',359.0,2.6,82.1,6.4,{serving:39,each:39});
+F('Rolo|rolos',481.5,5.6,66.7,20.4,{serving:54,pack:54,piece:5.4});
+F('Whoppers|whoppers malted milk balls',463.4,2.4,73.2,19.5,{serving:41,bag:41});
+F('Tootsie Roll|tootsie rolls',400.0,2.5,82.5,7.5,{serving:40,each:6.6});
+F('Ferrero Rocher|ferrero',578.9,7.9,47.4,39.5,{serving:38,each:12.5});
+F('Costco macadamia turtles (Kirkland)|kirkland caramel macadamia clusters|macadamia turtles|kirkland turtles|costco turtles|turtles macadamia|caramel macadamia clusters',538.5,5.1,53.8,33.3,{serving:39,each:19.5});
+F('DeMet\'s Turtles|turtles candy|turtles|turtle chocolate',470.6,5.9,61.8,23.5,{serving:34,each:17});
+F('Kirkland milk chocolate almonds|costco chocolate almonds|chocolate covered almonds',525.0,10.0,47.5,35.0,{serving:40,handful:28});
+F('Kirkland dark chocolate almonds|dark chocolate almonds',525.0,10.0,45.0,37.5,{serving:40,handful:28});
+F('Kirkland trail mix|costco trail mix',500.0,15.0,42.5,32.5,{serving:40,handful:28,cup:150});
+F('Kirkland mixed nuts|costco mixed nuts',607.1,17.9,21.4,53.6,{serving:28,handful:28,cup:140});
+F('Kirkland cashews|costco cashews',571.4,17.9,32.1,46.4,{serving:28,handful:28,cup:137});
+F('Kirkland protein bar|costco protein bar|kirkland signature protein bar',316.7,35.0,36.7,13.3,{serving:60,bar:60,each:60});
+F('Kirkland Greek yogurt|costco greek yogurt|kirkland plain greek yogurt',61.7,9.7,3.5,0.0,{serving:227,cup:227});
+F('Kirkland rotisserie chicken|costco rotisserie chicken|costco chicken',164.7,22.4,0.0,8.2,{serving:85,lb:453.6});
+F('Costco hot dog|costco polish|kirkland hot dog|costco food court hot dog',290.0,12.0,23.0,16.0,{serving:200,each:200});
+F('Costco pizza slice, cheese|costco pizza|costco cheese pizza|costco food court pizza',215.2,12.7,23.9,8.5,{serving:330,slice:330});
+F('Costco pizza slice, pepperoni|costco pepperoni pizza',230.3,12.4,24.2,9.7,{serving:330,slice:330});
+F('Costco muffin|costco blueberry muffin|kirkland muffin',368.1,4.3,45.4,18.4,{serving:163,each:163});
+F('Kirkland chocolate chunk cookie|costco cookie',473.7,5.3,59.6,24.6,{serving:57,each:57});
+F('Lay\'s Classic|lays|lay\'s|lays chips|potato chips lays',571.4,7.1,53.6,35.7,{serving:28,bag:28,'big bag':226});
+F('Doritos Nacho Cheese|doritos|nacho cheese doritos',535.7,7.1,64.3,28.6,{serving:28,bag:28});
+F('Doritos Cool Ranch|cool ranch doritos',535.7,7.1,64.3,28.6,{serving:28,bag:28});
+F('Cheetos Crunchy|cheetos',571.4,7.1,53.6,35.7,{serving:28,bag:28});
+F('Cheetos Flamin\' Hot|flamin hot cheetos|hot cheetos',607.1,3.6,53.6,39.3,{serving:28,bag:28});
+F('Fritos|fritos corn chips',571.4,7.1,57.1,35.7,{serving:28,bag:28});
+F('Ruffles|ruffles chips',571.4,7.1,53.6,35.7,{serving:28,bag:28});
+F('Pringles Original|pringles',535.7,3.6,53.6,32.1,{serving:28,piece:1.75});
+F('Tostitos|tostitos chips|tortilla chips tostitos',500.0,7.1,67.9,25.0,{serving:28,piece:2.8});
+F('SunChips|sun chips',500.0,7.1,67.9,21.4,{serving:28,bag:28});
+F('Kettle Brand chips|kettle chips',535.7,7.1,57.1,32.1,{serving:28,bag:28});
+F('Takis Fuego|takis',535.7,7.1,60.7,28.6,{serving:28,bag:28});
+F('Goldfish crackers|goldfish',466.7,10.0,66.7,16.7,{serving:30,piece:0.55,cup:55});
+F('Cheez-It|cheez its|cheezits|cheez it',500.0,10.0,56.7,26.7,{serving:30,piece:1.1});
+F('Ritz crackers|ritz',500.0,6.2,62.5,28.1,{serving:16,piece:3.2});
+F('Triscuit|triscuits',428.6,10.7,71.4,12.5,{serving:28,piece:4.7});
+F('Wheat Thins|wheat thins crackers',451.6,6.5,71.0,16.1,{serving:31,piece:1.9});
+F('Popchips|pop chips',428.6,3.6,71.4,14.3,{serving:28,bag:28});
+F('SkinnyPop popcorn|skinny pop|skinnypop',535.7,7.1,53.6,35.7,{serving:28,cup:7.5,bag:28});
+F('Smartfood white cheddar popcorn|smartfood',571.4,10.7,50.0,35.7,{serving:28,cup:10});
+F('Snyder\'s pretzels|snyders pretzels|pretzels snyders',400.0,10.0,83.3,1.7,{serving:30,each:1.5});
+F('Rold Gold pretzels|rold gold',392.9,10.7,82.1,0.0,{serving:28,handful:28});
+F('Quaker rice cakes|rice cake quaker',388.9,11.1,77.8,0.0,{serving:9,each:9});
+F('Oreo, Double Stuf|double stuf oreos|double stuf',482.8,3.4,72.4,24.1,{serving:29,each:14.5});
+F('Chips Ahoy|chips ahoy cookies',484.8,6.1,66.7,24.2,{serving:33,each:11});
+F('Nutter Butter|nutter butters',437.5,9.4,59.4,18.8,{serving:32,each:16});
+F('Pop-Tarts, frosted strawberry|pop tart|pop tarts|poptart',380.0,4.0,74.0,9.0,{serving:50,each:50});
+F('Nature Valley Crunchy granola bar|nature valley|nature valley bar',452.4,9.5,69.0,16.7,{serving:42,pack:42,piece:21});
+F('Nature Valley Sweet & Salty bar|sweet and salty bar',485.7,11.4,54.3,25.7,{serving:35,each:35});
+F('Kind bar, dark chocolate nuts & sea salt|kind bar|kind',500.0,15.0,40.0,37.5,{serving:40,bar:40,each:40});
+F('Clif Bar, chocolate chip|clif bar|clif',367.6,14.7,64.7,7.4,{serving:68,bar:68,each:68});
+F('Quaker Chewy granola bar|quaker chewy|chewy bar',416.7,4.2,70.8,14.6,{serving:24,each:24});
+F('Rice Krispies Treats|rice krispie treat',409.1,4.5,77.3,11.4,{serving:22,each:22});
+F('Little Debbie Oatmeal Creme Pie|oatmeal creme pie|oatmeal cream pie',447.4,2.6,71.1,18.4,{serving:38,each:38});
+F('Hostess Twinkie|twinkie|twinkies',337.7,2.6,59.7,10.4,{serving:38.5,each:38.5});
+F('Hostess Ding Dong|ding dong|ding dongs',462.5,3.8,56.2,23.8,{serving:80,pack:80,piece:40});
+F('Uncrustables, peanut butter & grape|uncrustables|uncrustable',362.1,10.3,44.8,15.5,{serving:58,each:58});
+F('Ben & Jerry\'s ice cream|ben and jerrys|ben & jerry',251.7,4.2,25.9,14.7,{serving:143,cup:143,pint:430});
+F('Haagen-Dazs vanilla|haagen dazs|haagen-dazs',263.6,4.7,21.7,17.8,{serving:129,cup:129,pint:387});
+F('Halo Top|halo top ice cream',102.3,6.8,20.5,3.4,{serving:88,cup:88,pint:264});
+F('Klondike bar|klondike',342.5,4.1,32.9,21.9,{serving:73,each:73});
+F('Drumstick cone|drumstick|nestle drumstick',341.2,4.7,37.6,20.0,{serving:85,each:85});
+F('Krispy Kreme original glazed|krispy kreme|krispy kreme donut',387.8,6.1,44.9,22.4,{serving:49,each:49});
+F('Dunkin\' glazed donut|dunkin donut|dunkin glazed',320.0,5.3,44.0,14.7,{serving:75,each:75});
+F('Quest bar|quest protein bar|quest',316.7,35.0,36.7,13.3,{serving:60,bar:60,each:60});
+F('Barebells protein bar|barebells',363.6,36.4,34.5,14.5,{serving:55,bar:55,each:55});
+F('ONE protein bar|one bar',366.7,33.3,38.3,13.3,{serving:60,bar:60,each:60});
+F('RXBAR|rx bar|rxbar',384.6,23.1,44.2,15.4,{serving:52,bar:52,each:52});
+F('Pure Protein bar|pure protein',380.0,40.0,34.0,12.0,{serving:50,bar:50,each:50});
+F('Built Bar|built bar|built puff',265.3,34.7,36.7,9.2,{serving:49,bar:49,each:49});
+F('Grenade bar|grenade carb killa',366.7,33.3,30.0,15.0,{serving:60,bar:60,each:60});
+F('Optimum Nutrition Gold Standard whey|gold standard|on whey|gold standard whey|whey protein optimum',387.1,77.4,9.7,4.8,{serving:31,scoop:31});
+F('Premier Protein shake|premier protein|premier shake',47.1,8.8,1.5,0.9,{serving:340,bottle:340,each:340});
+F('Fairlife Core Power 26g|core power|fairlife core power',41.1,6.3,2.2,1.1,{serving:414,bottle:414,each:414});
+F('Fairlife Core Power Elite 42g|core power elite',55.6,10.1,1.9,0.8,{serving:414,bottle:414,each:414});
+F('Fairlife milk, 2%|fairlife|fairlife milk',50.0,5.4,2.5,1.9,{serving:240,cup:240});
+F('Muscle Milk shake|muscle milk',48.5,7.6,2.7,1.4,{serving:330,bottle:330,each:330});
+F('Oikos Pro yogurt|oikos pro',93.3,13.3,4.7,2.0,{serving:150,cup:150,each:150});
+F('Oikos Triple Zero|triple zero|oikos',66.7,10.0,4.7,0.0,{serving:150,cup:150,each:150});
+F('Chobani Greek yogurt, plain nonfat|chobani plain|chobani',52.9,9.4,3.5,0.0,{serving:170,cup:170,each:170});
+F('Chobani Greek yogurt, fruit on the bottom|chobani fruit|chobani strawberry',80.0,7.3,10.0,1.3,{serving:150,cup:150,each:150});
+F('Ratio yogurt|ratio protein yogurt',113.3,16.7,4.7,2.7,{serving:150,cup:150,each:150});
+F('Two Good yogurt|two good',53.3,8.0,2.0,1.3,{serving:150,cup:150,each:150});
+F('Siggi\'s skyr|siggis|siggi\'s',73.3,10.0,8.0,0.0,{serving:150,cup:150,each:150});
+F('Jack Link\'s beef jerky|jack links|jack link\'s jerky',285.7,39.3,21.4,3.6,{serving:28,bag:79,stick:28});
+F('Chomps meat stick|chomps|stick chomps',281.2,31.2,0.0,15.6,{serving:32,each:32,stick:32});
+F('Slim Jim|slim jims',500.0,21.4,7.1,42.9,{serving:28,each:28,stick:28});
+F('Babybel cheese|babybel|mini babybel',333.3,23.8,0.0,28.6,{serving:21,each:21});
+F('String cheese|cheese stick|mozzarella string cheese',285.7,25.0,3.6,21.4,{serving:28,each:28});
+F('Sargento cheese stick|sargento',381.0,28.6,0.0,28.6,{serving:21,each:21});
+F('Cheerios|cheerios cereal',359.0,12.8,74.4,6.4,{serving:39,cup:39});
+F('Honey Nut Cheerios|honey nut cheerios',378.4,8.1,81.1,5.4,{serving:37,cup:37});
+F('Frosted Flakes|frosted flakes cereal',384.6,2.6,89.7,0.0,{serving:39,cup:39});
+F('Froot Loops|fruit loops|froot loops cereal',384.6,5.1,87.2,3.8,{serving:39,cup:39});
+F('Cinnamon Toast Crunch|cinnamon toast crunch cereal|ctc',414.6,4.9,80.5,9.8,{serving:41,cup:41});
+F('Lucky Charms|lucky charms cereal',388.9,5.6,80.6,4.2,{serving:36,cup:36});
+F('Raisin Bran|raisin bran cereal',322.0,8.5,78.0,1.7,{serving:59,cup:59});
+F('Special K|special k cereal',384.6,7.7,79.5,1.3,{serving:39,cup:39});
+F('Life cereal|quaker life',381.0,9.5,81.0,4.8,{serving:42,cup:42});
+F('Magic Spoon cereal|magic spoon',405.4,35.1,40.5,18.9,{serving:37,cup:37});
+F('Kodiak Cakes mix|kodiak|kodiak cakes|kodiak pancakes',358.5,26.4,56.6,3.8,{serving:53,cup:106});
+F('Eggo waffles|eggo|eggo waffle',257.1,5.7,42.9,8.6,{serving:35,each:35});
+F('Quaker instant oatmeal packet|instant oatmeal|quaker oatmeal packet',372.1,9.3,74.4,4.7,{serving:43,pack:43,each:43});
+F('Dave\'s Killer Bread|daves killer bread|dave\'s bread',244.4,11.1,48.9,3.3,{serving:45,slice:45});
+F('Nature\'s Own bread|natures own',230.8,11.5,46.2,3.8,{serving:26,slice:26});
+F('Thomas\' English muffin|english muffin thomas|thomas english muffin',245.6,8.8,45.6,1.8,{serving:57,each:57});
+F('Thomas\' bagel|thomas bagel',284.2,10.5,55.8,2.1,{serving:95,each:95});
+F('Mission flour tortilla|mission tortilla',311.1,8.9,51.1,7.8,{serving:45,each:45});
+F('Mission carb balance tortilla|carb balance tortilla|low carb tortilla',162.8,11.6,44.2,7.0,{serving:43,each:43});
+F('Jimmy Dean sausage biscuit|jimmy dean|jimmy dean sandwich',320.3,8.6,23.4,21.9,{serving:128,each:128});
+F('Coca-Cola|coke|coca cola',39.4,0.0,11.0,0.0,{serving:355,can:355,bottle:591});
+F('Diet Coke|diet coke|coke zero|coke zero sugar',0.0,0.0,0.0,0.0,{serving:355,can:355,bottle:591});
+F('Pepsi|pepsi cola',42.3,0.0,11.5,0.0,{serving:355,can:355,bottle:591});
+F('Dr Pepper|dr pepper|dr. pepper',42.3,0.0,11.3,0.0,{serving:355,can:355,bottle:591});
+F('Sprite|sprite soda',39.4,0.0,10.7,0.0,{serving:355,can:355,bottle:591});
+F('Mountain Dew|mtn dew|mountain dew soda',47.9,0.0,13.0,0.0,{serving:355,can:355,bottle:591});
+F('Red Bull|redbull',44.0,0.0,10.8,0.0,{serving:250,can:250});
+F('Red Bull sugar free|sugarfree red bull',4.0,0.0,0.8,0.0,{serving:250,can:250});
+F('Monster Energy|monster|monster energy drink',44.4,0.0,11.4,0.0,{serving:473,can:473});
+F('Monster Zero Ultra|monster ultra|white monster',2.1,0.0,0.4,0.0,{serving:473,can:473});
+F('Celsius|celsius energy drink',2.8,0.0,0.6,0.0,{serving:355,can:355});
+F('Ghost Energy|ghost energy drink',1.1,0.0,0.2,0.0,{serving:473,can:473});
+F('Bang energy|bang',0.0,0.0,0.0,0.0,{serving:473,can:473});
+F('Gatorade Zero|g zero|gatorade zero',1.7,0.0,0.2,0.0,{serving:591,bottle:591});
+F('Body Armor|bodyarmor',19.0,0.0,4.7,0.0,{serving:473,bottle:473});
+F('Starbucks Frappuccino bottle|starbucks bottled frappuccino',71.2,2.1,11.4,1.1,{serving:281,bottle:281});
+F('Starbucks Grande latte, 2%|starbucks latte|grande latte|latte starbucks',40.2,2.7,4.0,1.5,{serving:473,grande:473,tall:354,venti:591});
+F('Starbucks Grande Caramel Macchiato|caramel macchiato',52.9,2.1,7.4,1.5,{serving:473,grande:473,tall:354,venti:591});
+F('Starbucks Grande Frappuccino, caramel|caramel frappuccino|frappuccino',80.3,1.1,11.4,3.4,{serving:473,grande:473,tall:354,venti:709});
+F('Starbucks Grande cold brew|cold brew',1.1,0.0,0.0,0.0,{serving:473,grande:473});
+F('Starbucks Grande Pumpkin Spice Latte|pumpkin spice latte|psl',82.5,3.0,11.0,3.0,{serving:473,grande:473,tall:354,venti:591});
+F('Dunkin\' iced coffee, medium with cream and sugar|dunkin iced coffee',36.6,0.4,5.8,1.3,{serving:710,medium:710});
+F('Chick-fil-A chicken sandwich|chick fil a sandwich|chickfila sandwich|cfa sandwich',240.4,15.3,22.4,9.3,{serving:183,each:183});
+F('Chick-fil-A spicy chicken sandwich|chick fil a spicy|spicy chicken sandwich',244.6,15.2,22.8,10.3,{serving:184,each:184});
+F('Chick-fil-A nuggets, 8 count|chick fil a nuggets|cfa nuggets',221.2,23.9,9.7,9.7,{serving:113,piece:14});
+F('Chick-fil-A grilled nuggets, 8 count|grilled nuggets',115.0,22.1,0.9,2.7,{serving:113,piece:14});
+F('Chick-fil-A waffle fries, medium|waffle fries|chick fil a fries',336.0,4.0,36.0,19.2,{serving:125,medium:125,small:85,large:170});
+F('Chick-fil-A chicken biscuit|chick fil a biscuit',310.8,12.8,30.4,15.5,{serving:148,each:148});
+F('Chick-fil-A sauce|cfa sauce',500.0,0.0,21.4,46.4,{serving:28,pack:28});
+F('Chipotle burrito bowl, chicken, rice, beans, salsa|chipotle bowl|burrito bowl|chipotle chicken bowl',130.4,9.8,15.5,3.3,{serving:510,each:510});
+F('Chipotle chicken burrito|chipotle burrito',160.2,9.6,19.5,5.0,{serving:615,each:615});
+F('Chipotle chicken, 4 oz|chipotle chicken',159.3,28.3,0.0,6.2,{serving:113});
+F('Chipotle steak, 4 oz|chipotle steak',132.7,18.6,0.9,5.3,{serving:113});
+F('Chipotle white rice|chipotle rice',185.8,3.5,35.4,3.5,{serving:113});
+F('Chipotle chips|chipotle chips',477.9,6.2,64.6,22.1,{serving:113,bag:113});
+F('Chipotle guacamole|chipotle guac',203.5,1.8,7.1,19.5,{serving:113,side:113});
+F('Chipotle queso blanco|chipotle queso',210.5,8.8,7.0,15.8,{serving:57,side:57});
+F('McDonald\'s McChicken|mcchicken',279.7,9.8,27.3,14.7,{serving:143,each:143});
+F('McDonald\'s Chicken McNuggets, 10 piece|mcnuggets|chicken mcnuggets|mcdonalds nuggets',253.1,14.2,15.4,14.8,{serving:162,piece:16.2});
+F('McDonald\'s medium fries|mcdonalds fries|mcd fries',288.3,3.6,38.7,13.5,{serving:111,medium:111,small:71,large:150});
+F('McDonald\'s Egg McMuffin|egg mcmuffin|mcmuffin',227.9,12.5,22.1,9.6,{serving:136,each:136});
+F('McDonald\'s Sausage McMuffin with Egg|sausage mcmuffin',294.5,12.3,18.4,19.0,{serving:163,each:163});
+F('McDonald\'s hash brown|mcdonalds hash brown',264.2,1.9,30.2,15.1,{serving:53,each:53});
+F('McDonald\'s McFlurry with Oreo, regular|mcflurry|oreo mcflurry',178.9,4.2,28.1,6.0,{serving:285,each:285});
+F('Wendy\'s Dave\'s Single|daves single|wendys burger|wendy\'s single',270.6,13.3,17.9,15.6,{serving:218,each:218});
+F('Wendy\'s Jr. Bacon Cheeseburger|jbc|junior bacon cheeseburger|wendys jr bacon',280.3,13.6,18.9,16.7,{serving:132,each:132});
+F('Wendy\'s Frosty, small chocolate|frosty|wendys frosty',117.4,3.0,19.5,3.0,{serving:298,small:298,medium:397});
+F('Wendy\'s spicy chicken sandwich|wendys spicy chicken',234.7,13.1,23.5,9.9,{serving:213,each:213});
+F('Burger King Whopper|whopper',244.4,10.4,18.1,14.8,{serving:270,each:270});
+F('Taco Bell Crunchwrap Supreme|crunchwrap|crunchwrap supreme',208.7,6.3,28.0,8.3,{serving:254,each:254});
+F('Taco Bell Crunchy Taco|taco bell taco|crunchy taco',217.9,10.3,16.7,11.5,{serving:78,each:78});
+F('Taco Bell Chicken Quesadilla|taco bell quesadilla',277.2,14.1,20.1,14.7,{serving:184,each:184});
+F('Taco Bell Cheesy Gordita Crunch|cheesy gordita crunch',326.8,13.1,26.8,18.3,{serving:153,each:153});
+F('Taco Bell Mexican Pizza|mexican pizza',253.5,9.4,23.0,14.1,{serving:213,each:213});
+F('Subway 6 inch turkey sub|subway turkey|subway sub|6 inch sub',127.3,8.2,20.9,1.6,{serving:220,each:220,footlong:440});
+F('Subway 6 inch chicken teriyaki|subway teriyaki|subway chicken',132.0,10.0,20.0,1.8,{serving:250,each:250,footlong:500});
+F('Panda Express Orange Chicken|orange chicken|panda orange chicken',302.5,15.4,31.5,14.2,{serving:162});
+F('Panda Express chow mein|panda chow mein|chow mein panda',191.0,4.9,30.0,7.5,{serving:267});
+F('Panda Express fried rice|panda fried rice',197.0,4.2,32.2,6.1,{serving:264});
+F('Panda Express Beijing Beef|beijing beef',287.4,8.4,33.5,13.2,{serving:167});
+F('Panda Express Grilled Teriyaki Chicken|panda teriyaki chicken',185.2,22.2,4.9,8.0,{serving:162});
+F('In-N-Out Double-Double|double double|in n out burger|in-n-out',184.8,10.3,12.4,10.3,{serving:330,each:330});
+F('In-N-Out fries|in n out fries',288.0,4.8,39.2,12.0,{serving:125,each:125});
+F('Five Guys cheeseburger|five guys burger|five guys',277.2,15.5,13.2,18.2,{serving:303,each:303});
+F('Five Guys fries, regular|five guys fries',231.9,3.2,31.9,10.0,{serving:411,each:411});
+F('Raising Cane\'s chicken finger|canes chicken finger|canes tender|raising canes',302.3,30.2,14.0,14.0,{serving:43,each:43});
+F('Raising Cane\'s sauce|canes sauce',441.9,0.0,11.6,44.2,{serving:43,each:43});
+F('Popeyes chicken sandwich|popeyes sandwich|popeyes',328.6,13.1,23.5,19.7,{serving:213,each:213});
+F('KFC original recipe breast|kfc breast|kfc chicken',242.2,24.2,6.8,13.0,{serving:161,each:161});
+F('Domino\'s hand tossed pepperoni pizza, large|dominos pizza|domino\'s pepperoni|dominos',270.3,10.8,30.6,11.7,{serving:111,slice:111});
+F('Pizza Hut pepperoni pizza, large|pizza hut pizza|pizza hut',275.0,11.7,28.3,12.5,{serving:120,slice:120});
+F('Little Caesars pepperoni pizza|little caesars|hot n ready',259.3,11.1,29.6,10.2,{serving:108,slice:108});
+F('Jersey Mike\'s #13 regular|jersey mikes|jersey mike\'s sub|jersey mikes italian',247.1,11.8,15.6,14.7,{serving:340,each:340});
+F('Sweetgreen Harvest Bowl|harvest bowl|sweetgreen',176.2,9.2,15.8,9.5,{serving:400,each:400});
+F('Cava chicken bowl|cava bowl|cava',156.0,10.0,12.0,7.6,{serving:500,each:500});
+F('Panera broccoli cheddar soup, cup|panera broccoli cheddar|broccoli cheddar soup',101.3,4.0,6.6,6.6,{serving:227,cup:227,bowl:340});
+F('Starbucks egg bites, bacon & gruyere|egg bites|starbucks egg bites',230.8,14.6,6.9,15.4,{serving:130,pack:130,piece:65});
+F('Starbucks butter croissant|starbucks croissant',382.4,7.4,42.6,20.6,{serving:68,each:68});
+F('Starbucks banana bread|starbucks banana nut bread',352.9,5.0,43.7,16.8,{serving:119,each:119});
+F('Starbucks cake pop|cake pop',340.4,4.3,42.6,17.0,{serving:47,each:47});
+F('Kraft Mac & Cheese, prepared|kraft mac and cheese|kraft mac|easy mac',357.1,12.9,67.1,4.3,{serving:70,cup:200,box:206});
+F('Annie\'s Mac & Cheese, prepared|annies mac and cheese|annies',352.1,14.1,66.2,4.2,{serving:71,cup:200});
+F('Cup Noodles|cup noodles|cup of noodles',453.1,9.4,57.8,20.3,{serving:64,each:64});
+F('Maruchan ramen|maruchan|top ramen|ramen packet',441.9,9.3,60.5,16.3,{serving:43,pack:85});
+F('Hot Pockets, pepperoni|hot pocket|hot pockets',283.5,9.4,30.7,13.4,{serving:127,each:127});
+F('Totino\'s Pizza Rolls|pizza rolls|totinos',258.8,7.1,31.8,11.8,{serving:85,piece:14});
+F('DiGiorno rising crust pepperoni|digiorno|digiorno pizza',251.7,11.3,27.8,10.6,{serving:151,slice:151});
+F('Lean Cuisine|lean cuisine meal',117.6,5.5,15.7,3.1,{serving:255,each:255});
+F('Healthy Choice Power Bowl|healthy choice|power bowl',122.7,7.4,15.2,3.3,{serving:269,each:269});
+F('Banquet frozen meal|banquet meal|banquet',134.3,4.9,14.1,6.4,{serving:283,each:283});
+F('Tyson chicken nuggets|tyson nuggets|frozen chicken nuggets',273.8,14.3,15.5,16.7,{serving:84,piece:17});
+F('Tyson grilled chicken strips|tyson grilled strips',107.1,21.4,1.2,2.4,{serving:84});
+F('Just Bare chicken breast chunks|just bare|just bare nuggets',226.2,16.7,10.7,13.1,{serving:84});
+F('Ore-Ida Golden Fries|ore ida fries|frozen fries ore ida',154.8,2.4,25.0,5.4,{serving:84,cup:84});
+F('Bagel Bites|bagel bite',215.9,9.1,29.5,6.8,{serving:88,piece:22});
+F('Smucker\'s strawberry jam|smuckers jam|smuckers',250.0,0.0,65.0,0.0,{serving:20,tbsp:20});
+F('Jif peanut butter|jif|skippy|peanut butter jif',575.8,21.2,24.2,48.5,{serving:33,tbsp:16});
+F('PB2 powdered peanut butter|pb2|powdered peanut butter',461.5,46.2,38.5,11.5,{serving:13,tbsp:6.5});
+F('Barilla pasta, dry|barilla|barilla spaghetti',357.1,12.5,75.0,1.8,{serving:56,cup:91});
+F('Rao\'s marinara|raos|rao\'s sauce',80.0,1.6,4.8,6.4,{serving:125,cup:250});
+F('Prego traditional sauce|prego',72.0,1.6,10.4,2.4,{serving:125,cup:250});
+F('Uncle Ben\'s Ready Rice|ready rice|ben\'s original ready rice|uncle bens',168.0,3.2,32.8,2.4,{serving:125,pack:250,cup:125});
+F('Heinz ketchup|heinz|ketchup heinz',117.6,0.0,29.4,0.0,{serving:17,tbsp:17});
+F('Hidden Valley ranch|hidden valley',433.3,3.3,6.7,43.3,{serving:30,tbsp:15});
+F('Sabra hummus|sabra',250.0,7.1,14.3,17.9,{serving:28,tbsp:14});
+F('Tillamook cheddar|tillamook|tillamook cheese',392.9,25.0,0.0,32.1,{serving:28,slice:21});
+F('Kraft Singles|kraft single|american cheese slice',315.8,15.8,10.5,23.7,{serving:19,slice:19});
+F('Oscar Mayer turkey|oscar mayer|deli turkey',89.3,16.1,3.6,1.8,{serving:56,slice:14});
+F('Hillshire Farm turkey|hillshire farm',89.3,17.9,3.6,0.9,{serving:56,slice:9});
+F('Ball Park franks|ball park hot dog|ballpark franks',326.5,12.2,4.1,28.6,{serving:49,each:49});
+F('Johnsonville brat|johnsonville|bratwurst johnsonville',317.1,15.9,2.4,26.8,{serving:82,each:82});
+F('Bai drink|bai|bai antioxidant',1.9,0.0,0.4,0.0,{serving:530,bottle:530});
+F('Liquid IV|liquid iv',281.2,0.0,68.8,0.0,{serving:16,stick:16});
+F('Olipop|olipop soda',12.7,0.0,3.9,0.0,{serving:355,can:355});
+F('Poppi|poppi soda',7.0,0.0,1.4,0.0,{serving:355,can:355});
 /* ---------- extended bank: USDA FoodData Central (public domain) ---------- */
 // about 5,000 more foods from the USDA survey and reference lists. each line is
 // name ~ calories ~ protein ~ carbs ~ fat per 100 g ~ unit sizes in grams. the hand-made
@@ -6895,10 +7152,12 @@ XF.split('\n').forEach(l => {
 /* ---------- search, parsing, preview ---------- */
 const UNITS = {g:'g',gram:'g',grams:'g',kg:'kg',oz:'oz',ounce:'oz',ounces:'oz',lb:'lb',lbs:'lb',pound:'lb',pounds:'lb',
   cup:'cup',cups:'cup',tbsp:'tbsp',tablespoon:'tbsp',tablespoons:'tbsp',tsp:'tsp',teaspoon:'tsp',teaspoons:'tsp',
-  slice:'slice',slices:'slice',scoop:'scoop',scoops:'scoop',can:'can',cans:'can',piece:'each',pieces:'each',each:'each',
+  slice:'slice',slices:'slice',scoop:'scoop',scoops:'scoop',can:'can',cans:'can',piece:'piece',pieces:'piece',each:'each',
   whole:'each',medium:'each',large:'each',small:'each',serving:'serving',servings:'serving',handful:'handful',handfuls:'handful',
   glass:'glass',glasses:'glass',bottle:'bottle',bottles:'bottle',square:'square',squares:'square',pat:'pat',pats:'pat',
-  container:'container',containers:'container',carton:'carton',cartons:'carton',shot:'shot',shots:'shot'};
+  container:'container',containers:'container',carton:'carton',cartons:'carton',shot:'shot',shots:'shot',
+  bag:'bag',bags:'bag',bar:'bar',bars:'bar',pack:'pack',packs:'pack',packet:'pack',packets:'pack',stick:'stick',sticks:'stick',
+  box:'box',boxes:'box',pint:'pint',pints:'pint',grande:'grande',tall:'tall',venti:'venti',footlong:'footlong',footlongs:'footlong'};
 
 // saved foods: either per serving (typed in by hand) or per 100 g with a serving size (scanned)
 function customFoods(){
@@ -6975,6 +7234,9 @@ function resolve(f, qty, unit){
   const U = unitsFor(f);
   let u = unit, warn = false;
   const d = f.def && U[f.def] ? f.def : U.each ? 'each' : 'serving';
+  if(u === 'piece' && !U.piece && U.each) u = 'each';
+  // "10 mcnuggets" or "20 m&ms" counts pieces, not servings
+  if(!u && U.piece && !U.each && qty >= 3) u = 'piece';
   if(!u) u = d;
   else if(!U[u]){ warn = true; u = d; }
   const k = qty*U[u]/100;
@@ -7044,7 +7306,7 @@ function previewHTML(rows){
   return {html, tot, n};
 }
 
-$('q').addEventListener('input', () => { suggestFoods(); parseAll(); });
+$('q').addEventListener('input', () => { webSeq++; suggestFoods(); parseAll(); });
 // suggest foods for the item being typed; tapping one fills it in and starts the next item
 let suggestions = [];
 function currentFragment(){
@@ -7054,13 +7316,66 @@ function currentFragment(){
 function suggestFoods(){
   const {frag} = currentFragment(), p = parseItem(frag.trim()), box = $('suggest');
   suggestions = p.name && p.name.replace(/[^a-z]/gi,'').length >= 2 ? search(p.name, 6) : [];
-  box.hidden = !suggestions.length;
-  box.innerHTML = suggestions.map((f,i) => `<button type="button" class="sRow" data-s="${i}"><span class="icoTile">${icoImg(iconFor({name:f.name}))}</span><span>${esc(f.name)}</span><small>${Math.round(resolve(f,1,null).cal)} / ${resolve(f,1,null).u === 'serving' ? servLabel(f) : resolve(f,1,null).u}</small></button>`).join('');
+  webQ = p.name && p.name.replace(/[^a-z]/gi,'').length >= 3 ? p.name : '';
+  box.hidden = !suggestions.length && !webQ;
+  box.innerHTML = suggestions.map((f,i) => `<button type="button" class="sRow" data-s="${i}"><span class="icoTile">${icoImg(iconFor({name:f.name}))}</span><span>${esc(f.name)}</span><small>${Math.round(resolve(f,1,null).cal)} / ${resolve(f,1,null).u === 'serving' ? servLabel(f) : resolve(f,1,null).u}</small></button>`).join('')
+    + (webQ ? `<button type="button" class="sRow sWeb" data-web><span class="icoTile">${icoImg('other')}</span><span>Search online for “${esc(webQ)}”</span><small></small></button>` : '');
+  trayUpdate();
+}
+/* ---------- online food search: Open Food Facts and USDA branded foods, for anything not in the bank ---------- */
+var webQ = "", webHits = [], webSeq = 0;
+async function webSearch(q){
+  const tc = s => s.toLowerCase().replace(/(^|[\s,(&/-])[a-z]/g, ch => ch.toUpperCase());
+  const off = (async () => {
+    const u = 'https://world.openfoodfacts.org/cgi/search.pl?search_simple=1&json=1&page_size=12&tagtype_0=countries&tag_contains_0=contains&tag_0=united-states&fields=product_name,brands,nutriments,serving_quantity&search_terms=' + encodeURIComponent(q);
+    const d = await (await fetch(u)).json();
+    return (d.products || []).map(p => {
+      const n = p.nutriments || {}; let kcal = n['energy-kcal_100g'];
+      if(kcal == null && n['energy_100g'] != null) kcal = n['energy_100g']/4.184;
+      if(!(kcal > 0) || !p.product_name) return null;
+      const brand = p.brands ? p.brands.split(',')[0].trim() : '';
+      return {name:joinBrand(brand, p.product_name.trim()), per:{cal:+kcal, pro:+n.proteins_100g || 0, carb:+n.carbohydrates_100g || 0, fat:+n.fat_100g || 0}, serv:parseFloat(p.serving_quantity) || 100};
+    }).filter(Boolean);
+  })();
+  const usda = (async () => {
+    const d = await (await fetch('https://api.nal.usda.gov/fdc/v1/foods/search?api_key=DEMO_KEY&dataType=Branded&pageSize=12&query=' + encodeURIComponent(q))).json();
+    return (d.foods || []).map(f => {
+      const nv = num => { const x = (f.foodNutrients || []).find(n => n.nutrientNumber === num); return x ? +x.value || 0 : 0; };
+      const cal = nv('208'); if(!cal) return null;
+      const unit = (f.servingSizeUnit || '').toLowerCase(), brand = f.brandName || f.brandOwner || '';
+      return {name:joinBrand(brand && tc(brand), tc(f.description || '')), per:{cal, pro:nv('203'), carb:nv('205'), fat:nv('204')},
+        serv:(unit === 'g' || unit === 'ml' || unit === 'grm' || unit === 'mlt') && f.servingSize ? +f.servingSize : 100};
+    }).filter(Boolean);
+  })();
+  const [a, b] = await Promise.allSettled([off, usda]);
+  const all = [].concat(a.status === 'fulfilled' ? a.value : [], b.status === 'fulfilled' ? b.value : []);
+  // closest name match first, then drop repeats
+  const qt = tok(q), seen = new Set();
+  return all.map((h,i) => { const nt = tok(h.name); return {h, s: qt.filter(t => nt.some(x => x.startsWith(t))).length*10 - nt.length*0.2 - i*0.01}; })
+    .sort((x,y) => y.s - x.s).map(x => x.h)
+    .filter(h => { const k = h.name.toLowerCase() + Math.round(h.per.cal); if(seen.has(k)) return false; seen.add(k); return true; })
+    .slice(0, 10);
+}
+async function runWeb(){
+  const q = webQ, box = $('suggest'), my = ++webSeq;
+  if(!q) return;
+  box.innerHTML = `<div class="sRow sNote"><span></span><span>Searching…</span><small></small></div>`;
+  let hits = [];
+  try{ hits = await webSearch(q); }catch(e){}
+  if(my !== webSeq) return;
+  webHits = hits;
+  box.innerHTML = hits.length ? hits.map((h,i) => `<button type="button" class="sRow" data-w="${i}"><span class="icoTile">${icoImg(iconFor({name:h.name}))}</span><span>${esc(h.name)}</span><small>${Math.round(h.per.cal*h.serv/100)} / ${Math.round(h.serv)} g</small></button>`).join('')
+    : `<div class="sRow sNote"><span></span><span>Nothing found online. Try fewer words, or add it as a custom food.</span><small></small></div>`;
   trayUpdate();
 }
 $('suggest').addEventListener('click', ev => {
-  const b = ev.target.closest('[data-s]'); if(!b) return;
-  const f = suggestions[+b.dataset.s], {before, frag} = currentFragment(), p = parseItem(frag.trim());
+  if(ev.target.closest('[data-web]')){ runWeb(); return; }
+  const w = ev.target.closest('[data-w]');
+  let f;
+  if(w){ const h = webHits[+w.dataset.w]; const nm = keepScanned(h.name, h.per, h.serv, true); webSeq++; f = search(nm).find(x => x.custom && x.name === nm) || search(nm)[0]; if(!f) return; }
+  const b = ev.target.closest('[data-s]'); if(!b && !f) return;
+  if(!f) f = suggestions[+b.dataset.s];
+  const {before, frag} = currentFragment(), p = parseItem(frag.trim());
   // anything typed before a comma still counts, then the picked food joins the list and the box clears
   if(before.trim()) parseRows(before).forEach(r => { if(r.f) staged.push(r); });
   stageRow(f, p.qty, p.unit);
@@ -7359,7 +7674,7 @@ async function offLookup(codes){
 let usdaLimited = false;
 async function usdaLookup(codes){
   usdaLimited = false;
-  const tc = s => s.toLowerCase().replace(/\b[a-z]/g, ch => ch.toUpperCase());
+  const tc = s => s.toLowerCase().replace(/(^|[\s,(&/-])[a-z]/g, ch => ch.toUpperCase());
   for(const c of codes){
     try{
       const gtin = c.padStart(14, '0');
